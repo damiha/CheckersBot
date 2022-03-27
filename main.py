@@ -1,11 +1,10 @@
 
-# Import the pygame library and initialise the game engine
-import pygame
-
-from constants import *
-from draw import *
-from engine import Engine
-from move import Move
+# --- IMPORTANT ---
+# 1. this bot plays according to the rules of international draughts on lidraughts.org
+# 2. it uses the pydraughts package to generate valid moves & check for wins/draws
+from draughts import Game, Move, WHITE, BLACK
+from draw_engine import *
+from helpers import coordsToDraughts
 
 pygame.init()
 
@@ -13,17 +12,16 @@ pygame.init()
 screen = pygame.display.set_mode(windowSize)
 pygame.display.set_caption("CheckersBOT")
 
-# Define side bar font
-sideBarFont = pygame.font.SysFont("monospace", sideBarFontSize)
-promotionFont = pygame.font.SysFont("monospace", promotionFontSize)
-
 # The loop will carry on until the user exits the game (e.g. clicks the close button).
 isRunning = True
 refreshNeeded = True
 gameBoardChanged = True
 
-# player = 1 => RED
-# player = 2 => WHITE
+# player = 1 => WHITE
+# player = 2 => BLACK
+
+# WHITE BEGINS
+game = Game(variant="standard", fen="startpos")
 
 info = {
     "player": 1,
@@ -41,63 +39,43 @@ clock = pygame.time.Clock()
 # 0 = empty
 # 1 = white (normal)
 # 2 = white (king)
-# 3 = red (normal)
-# 4 = red (king)
+# 3 = black (normal)
+# 4 = normal (king)
 
 board = [
-    [0, 3, 0, 3, 0, 3, 0, 3],
-    [3, 0, 3, 0, 3, 0, 3, 0],
-    [0, 3, 0, 3, 0, 3, 0, 3],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0],
-    [0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0]
+    [0, 3, 0, 3, 0, 3, 0, 3, 0, 3],
+    [3, 0, 3, 0, 3, 0, 3, 0, 3, 0],
+    [0, 3, 0, 3, 0, 3, 0, 3, 0, 3],
+    [3, 0, 3, 0, 3, 0, 3, 0, 3, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
 ]
 
-engine = Engine()
+def setPieceMoves():
 
-
-def filterMoves():
-
+    x, y = info["selected"]
+    fromPos = coordsToDraughts(x, y)
     pieceMoves = []
 
     for move in info["allMoves"]:
 
-        if move.fromPos == info["selected"]:
+        fromPosMove, toPosMove = move
+
+        if fromPos == fromPosMove:
             pieceMoves.append(move)
 
-    return pieceMoves
+    info["pieceMoves"] = pieceMoves
+
+def makeMove():
+    pass
 
 
-def makeMove(board, move):
 
-    # non capture
-    fromX, fromY = move.fromPos
-    toX, toY = move.toPos
-
-    if not move.isCapture:
-        board[toY][toX] = board[fromY][fromX]
-        board[fromY][fromX] = 0
-
-    # capture
-    else:
-        board[toY][toX] = board[fromY][fromX]
-        board[fromY][fromX] = 0
-
-        capturedX = int((fromX + toX) / 2)
-        capturedY = int((fromY + toY) / 2)
-
-        board[capturedY][capturedX] = 0
-
-    # check promotion after non capture or capture have been processed
-    if move.isPromotion:
-        board[toY][toX] = board[toY][toX] + 1
-
-    # promotions and non captures are the only way so that the other player gets his turn
-    if move.isPromotion or not move.isCapture:
-        info["player"] = 2 if info["player"] == 1 else 1
-
+drawEngine = DrawEngine(screen, board)
 
 # -------- Main Program Loop -----------
 while isRunning:
@@ -109,43 +87,45 @@ while isRunning:
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             [mouseX, mouseY] = pygame.mouse.get_pos()
-            info["mousex"] = mouseX
-            info["mousey"] = mouseY
 
             # convert mousePosition to tilePosition
             tileX = int(mouseX / tileSize)
             tileY = int(mouseY / tileSize)
 
+            info["mousex"] = tileX
+            info["mousey"] = tileY
+
             if info["player"] == 1 and board[tileY][tileX] == 1 or board[tileY][tileX] == 2:
                 info["selected"] = (tileX, tileY)
-                info["pieceMoves"] = filterMoves()
+                setPieceMoves()
 
             elif info["player"] == 2 and board[tileY][tileX] == 3 or board[tileY][tileX] == 4:
                 info["selected"] = (tileX, tileY)
-                info["pieceMoves"] = filterMoves()
+                setPieceMoves()
 
+            # TODO: make a valid move to the empty square
             elif board[tileY][tileX] == 0:
-                for move in info["allMoves"]:
-                    if move.fromPos == info["selected"] and move.toPos == (tileX, tileY):
-                        makeMove(board, move)
-                        gameBoardChanged = True
+                pass
 
             refreshNeeded = True
 
     if gameBoardChanged:
-        info["allMoves"] = engine.showValidMoves(board, info["player"])
+        # TODO: calculate all valid moves using pydraughts
+        info["allMoves"] = game.get_possible_moves()
         info["pieceMoves"] = []
         gameBoardChanged = False
 
     if refreshNeeded:
         # --- Drawing code should go here
-        drawBackground(screen, board)
+        drawEngine.drawBackground()
 
-        drawPieces(screen, board)
+        drawEngine.drawPieces()
 
-        drawAvailableMoves(screen, info["pieceMoves"])
+        drawEngine.drawTileLabels()
 
-        drawSidebar(screen, sideBarFont, info)
+        drawEngine.drawAvailableMoves(game.whose_turn(), info["pieceMoves"])
+
+        drawEngine.drawSidebar(info)
 
         refreshNeeded = False
 

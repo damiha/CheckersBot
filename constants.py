@@ -1,21 +1,26 @@
 
 # Define some colors
 BLACK = (0, 0, 0)
-
+DARK_GREY = (25, 25, 25)
 WHITE = (255, 255, 255)
-LIGHT_GREY = (200, 200, 200)
+LIGHT_GREY = (230, 230, 230)
 
-LIGHT_RED = (255, 100, 100)
-RED = (255, 0, 0)
-DARK_RED = (200, 0, 0)
+LIGHT_BROWN = (255, 230, 170)
+DARK_BROWN = (80, 50, 0)
 
 # Define some sizes
 windowSize = (1200, 800)
 boardSize = (800, 800)
-tileSize = boardSize[0] / 8
 
+tilesPerRow = 10
+tileSize = boardSize[0] / tilesPerRow
+
+pieceSize = tileSize * 0.75
+pieceOffset = (tileSize - pieceSize) / 2
+
+numberingFontSize = 16
 sideBarFontSize = 16
-promotionFontSize = 20
+promotionFontSize = 48
 
 # measured in pixels
 lineHeight = 20

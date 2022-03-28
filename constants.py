@@ -1,9 +1,8 @@
 
 # Define some colors
 BLACK = (0, 0, 0)
-DARK_GREY = (25, 25, 25)
+GREY = (127, 127, 127)
 WHITE = (255, 255, 255)
-LIGHT_GREY = (230, 230, 230)
 
 LIGHT_BROWN = (255, 230, 170)
 DARK_BROWN = (80, 50, 0)
@@ -20,7 +19,7 @@ pieceOffset = (tileSize - pieceSize) / 2
 
 numberingFontSize = 16
 sideBarFontSize = 16
-promotionFontSize = 48
+promotionFontSize = 40
 
 # measured in pixels
 lineHeight = 20

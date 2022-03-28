@@ -19,15 +19,23 @@ class DrawEngine:
         # padding is 5, 5
         offsetX, offsetY = [boardSize[0] + 5, 5]
 
-        playerText = "player: " + ("red" if info["player"] == 1 else "white")
+        playerText = "player: " + ("white" if info["player"] == 1 else "black")
         playerLabel = self.sideBarFont.render(playerText, 1, WHITE)
 
         mouseText = f"mouse: x = {info['mousex']}, y = {info['mousey']}"
         mouseLabel = self.sideBarFont.render(mouseText, 1, WHITE)
 
+        loadStoreText = "load [L], store [S]"
+        loadStoreLabel = self.sideBarFont.render(loadStoreText, 1, WHITE)
+
+        flipAnalyzeText = "flip [F], analyze [A]"
+        flipAnalyzeLabel = self.sideBarFont.render(flipAnalyzeText, 1, WHITE)
+
         pygame.draw.rect(self.screen, BLACK, [boardSize[0] + 5, 5, windowSize[0] - boardSize[0], windowSize[1] - boardSize[1]], 0)
         self.screen.blit(playerLabel, (offsetX, offsetY))
         self.screen.blit(mouseLabel, (offsetX, offsetY + 1 * lineHeight))
+        self.screen.blit(loadStoreLabel, (offsetX, offsetY + 3 * lineHeight))
+        self.screen.blit(flipAnalyzeLabel, (offsetX, offsetY + 4 * lineHeight))
 
     def drawAvailableMoves(self, player, moves):
 
@@ -74,19 +82,23 @@ class DrawEngine:
                 # draw inner and outer ellipse to visualize the checker piece
                 tileOffset = 5
 
+                # pieces that were captured but remain on the board
+                if board_content == -1:
+                    pygame.draw.ellipse(self.screen, GREY, [x * tileSize + pieceOffset, y * tileSize + pieceOffset, pieceSize, pieceSize], 0)
+
                 if board_content == 1 or board_content == 2:
                     pygame.draw.ellipse(self.screen, WHITE, [x * tileSize + pieceOffset, y * tileSize + pieceOffset, pieceSize, pieceSize], 0)
 
                     # draw promoted
                     if board_content == 2:
-                        self.screen.blit(blackPromotionLabel, (x * tileSize + tileSize/3, y * tileSize + tileSize/4))
+                        self.screen.blit(whitePromotionLabel, (x * tileSize + tileSize / 3, y * tileSize + tileSize / 5))
 
                 elif board_content == 3 or board_content == 4:
                     pygame.draw.ellipse(self.screen, BLACK, [x * tileSize + pieceOffset, y * tileSize + pieceOffset, pieceSize, pieceSize], 0)
 
                     # draw promoted
                     if board_content == 4:
-                        self.screen.blit(whitePromotionLabel, (x * tileSize + tileSize / 3, y * tileSize + tileSize / 4))
+                        self.screen.blit(blackPromotionLabel, (x * tileSize + tileSize / 3, y * tileSize + tileSize / 5))
 
     def drawTileLabels(self):
 

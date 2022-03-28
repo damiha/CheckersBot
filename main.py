@@ -1,4 +1,3 @@
-
 # --- IMPORTANT ---
 # 1. this bot plays according to the rules of international draughts on lidraughts.org
 # 2. it uses the pydraughts package to generate valid moves & check for wins/draws
@@ -29,7 +28,10 @@ info = {
     "mousey": 0,
     "selected": (-1, -1),
     "allMoves": [],
-    "pieceMoves": []
+    "pieceMoves": [],
+    "capturedPieces": [],
+    "isPromotion": False,
+    "promotedPiece": (-1, -1)
 }
 
 # The clock will be used to control how fast the screen updates
@@ -55,8 +57,8 @@ board = [
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
 ]
 
-def setPieceMoves():
 
+def setPieceMoves():
     x, y = info["selected"]
     fromPos = coordsToDraughts(x, y)
     pieceMoves = []
@@ -70,9 +72,85 @@ def setPieceMoves():
 
     info["pieceMoves"] = pieceMoves
 
-def makeMove():
-    pass
 
+def getMove(toX, toY):
+    toPos = coordsToDraughts(toX, toY)
+
+    for move in info["pieceMoves"]:
+        if move[1] == toPos:
+            return move
+    return None
+
+
+def getPositionOfCapturedPiece(move):
+    fromX, fromY = draughtsToCoords(move[0])
+    toX, toY = draughtsToCoords(move[1])
+
+    dirX = 1 if (toX - fromX) > 0 else -1
+    dirY = 1 if (toY - fromY) > 0 else -1
+
+    probX = fromX
+    probY = fromY
+
+    # walk along the diagonal
+    while probX != toX and probY != toY:
+
+        if (info["player"] == 1 and board[probY][probX] > 2) or (info["player"] == 2 and 1 <= board[probY][probX] <= 2):
+            return probX, probY
+
+        probX += dirX
+        probY += dirY
+
+    return -1, -1
+
+
+def isPromotion(move):
+    fromX, fromY = draughtsToCoords(move[0])
+    toX, toY = draughtsToCoords(move[1])
+
+    return (board[fromY][fromX] == 1 and toY == 0) or (board[fromY][fromX] == 3 and toY == (tilesPerRow - 1))
+
+
+def makeMove(move):
+    fromX, fromY = draughtsToCoords(move[0])
+    toX, toY = draughtsToCoords(move[1])
+
+    board[toY][toX] = board[fromY][fromX]
+    board[fromY][fromX] = 0
+
+    capturedX, capturedY = getPositionOfCapturedPiece(move)
+    isCapture = (capturedX, capturedY) != (-1, -1)
+
+    if isCapture:
+        # set as captured but don't remove piece from board immediately
+        board[capturedY][capturedX] = -1
+        info["capturedPieces"].append((capturedX, capturedY))
+
+    # save promotion to realize later
+    info["isPromotion"] = info["isPromotion"] or isPromotion(move)
+
+    if info["isPromotion"]:
+        info["promotedPiece"] = (toX, toY)
+
+    game.move(move, isCapture)
+    thisPlayer = info["player"]
+    nextPlayer = 1 if game.whose_turn() == 2 else 2
+
+    # move ends players turn, realize promotions and captures
+    if nextPlayer != thisPlayer:
+
+        for (capturedX, capturedY) in info["capturedPieces"]:
+            board[capturedY][capturedX] = 0
+
+        if info["isPromotion"]:
+            promotedX, promotedY = info["promotedPiece"]
+            board[promotedY][promotedX] += 1
+
+        info["capturedPieces"] = []
+        info["isPromotion"] = False
+        info["promotedPiece"] = (-1, -1)
+
+    info["player"] = nextPlayer
 
 
 drawEngine = DrawEngine(screen, board)
@@ -105,7 +183,12 @@ while isRunning:
 
             # TODO: make a valid move to the empty square
             elif board[tileY][tileX] == 0:
-                pass
+
+                move = getMove(tileX, tileY)
+
+                if move is not None:
+                    makeMove(move)
+                    gameBoardChanged = True
 
             refreshNeeded = True
 

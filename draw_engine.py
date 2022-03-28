@@ -14,6 +14,9 @@ class DrawEngine:
         self.numberingFont = pygame.font.SysFont("monospace", numberingFontSize)
         self.promotionFont = pygame.font.SysFont("monospace", promotionFontSize)
 
+    def reloadBoard(self, board):
+        self.board = board
+
     def drawSidebar(self, info):
         # Sidebar has dimensions 400 x 800 and is positioned at 800, 0
         # padding is 5, 5

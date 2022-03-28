@@ -26,3 +26,23 @@ lineHeight = 20
 
 cursorDiameter = 25
 cursorOffset = (tileSize - cursorDiameter) / 2
+
+# define initial game step (white on the bottom, black on top)
+# 0 = empty
+# 1 = white (normal)
+# 2 = white (king)
+# 3 = black (normal)
+# 4 = black (king)
+
+initial_board = [
+    [0, 3, 0, 3, 0, 3, 0, 3, 0, 3],
+    [3, 0, 3, 0, 3, 0, 3, 0, 3, 0],
+    [0, 3, 0, 3, 0, 3, 0, 3, 0, 3],
+    [3, 0, 3, 0, 3, 0, 3, 0, 3, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+]

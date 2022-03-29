@@ -47,7 +47,8 @@ class App:
             "isPromotion": False,
             "promotedPiece": (-1, -1),
             # to write out game to file
-            "moveHistory": []
+            "moveHistory": [],
+            "isFlipped": False
         }
 
         # The clock will be used to control how fast the screen updates
@@ -55,7 +56,7 @@ class App:
 
         self.board = [row[:] for row in initial_board]
 
-        self.drawEngine = DrawEngine(self.screen, self.board)
+        self.drawEngine = DrawEngine(self.screen, self.board, self.info)
 
     def resetInfo(self):
         self.info["player"] = 1
@@ -71,6 +72,8 @@ class App:
         self.info["promotedPiece"] = (-1, -1)
         # to write out game to file
         self.info["moveHistory"] = []
+
+        self.info["isFlipped"] = False
 
     def makeMove(self, move):
 
@@ -165,12 +168,21 @@ class App:
                         self.refreshNeeded = True
                         self.gameBoardChanged = True
 
+                elif event.key == pygame.K_f:
+                    self.info["isFlipped"] = True if not self.info["isFlipped"] else False
+                    self.refreshNeeded = True
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 [mouseX, mouseY] = pygame.mouse.get_pos()
 
                 # convert mousePosition to tilePosition
                 tileX = int(mouseX / tileSize)
                 tileY = int(mouseY / tileSize)
+
+                # if flipped, translation is needed
+                if self.info["isFlipped"]:
+                    tileX = (tilesPerRow - 1) - tileX
+                    tileY = (tilesPerRow - 1) - tileY
 
                 # prevent that a click outside of the game window leads to an out of bounds exception
                 if not outOfBounds(tileX, tileY):
@@ -203,11 +215,15 @@ class App:
 
         self.drawEngine.drawPieces()
 
+        self.drawEngine.drawAvailableMoves()
+
         self.drawEngine.drawTileLabels()
 
-        self.drawEngine.drawAvailableMoves(self.game.whose_turn(), self.info["pieceMoves"])
+        self.drawEngine.rotateIfFlipped()
 
-        self.drawEngine.drawSidebar(self.info)
+        self.drawEngine.drawSidebar()
+
+        self.drawEngine.combineSurfaces()
 
         # --- Go ahead and update the screen with what we've drawn.
         pygame.display.flip()

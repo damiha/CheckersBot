@@ -45,7 +45,6 @@ class App:
             # to record a capture sequence
             "capturedPieces": [],
             "isPromotion": False,
-            "promotedPiece": (-1, -1),
             # to write out game to file
             "moveHistory": [],
             "isFlipped": False,
@@ -81,7 +80,6 @@ class App:
         # to record a capture sequence
         self.info["capturedPieces"] = []
         self.info["isPromotion"] = False
-        self.info["promotedPiece"] = (-1, -1)
         # to write out game to file
         self.info["moveHistory"] = []
 
@@ -98,8 +96,11 @@ class App:
             else:
                 self.info["whoWon"] = 1 if self.game.has_player_won(WHITE_PLAYER) else 2
 
-    # TODO: track the promoted pieces to draw a big K
     def makeMove(self, move):
+
+        # use (now) old board position to determine if a promotion occurred
+        # promotion moves are last moves, nothing happens when you get to the promotion square and jump away afterwards
+        self.info["isPromotion"] = isPromotion(self.board, move)
 
         fromX, fromY = draughtsToCoords(move[0])
         toX, toY = draughtsToCoords(move[1])
@@ -115,12 +116,6 @@ class App:
             self.board[capturedY][capturedX] = -1
             self.info["capturedPieces"].append((capturedX, capturedY))
 
-        # save promotion for end of turn
-        self.info["isPromotion"] = self.info["isPromotion"] or isPromotion(self.board, move)
-
-        if self.info["isPromotion"]:
-            self.info["promotedPiece"] = (toX, toY)
-
         self.game.move(move, isCapture)
 
         self.info["moveHistory"].append(move)
@@ -135,12 +130,10 @@ class App:
                 self.board[capturedY][capturedX] = 0
 
             if self.info["isPromotion"]:
-                promotedX, promotedY = self.info["promotedPiece"]
-                self.board[promotedY][promotedX] += 1
+                self.board[toY][toX] += 1
 
             self.info["capturedPieces"] = []
             self.info["isPromotion"] = False
-            self.info["promotedPiece"] = (-1, -1)
 
         self.info["player"] = nextPlayer
 

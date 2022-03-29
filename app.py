@@ -28,7 +28,8 @@ class App:
 
         self.isRunning = True
         # triggered when something needs to be redrawn
-        self.refreshNeeded = True
+        self.boardRefreshNeeded = True
+        self.sideBarRefreshNeeded = True
         # triggered when pieces have moved, have been captured
         self.gameBoardChanged = True
 
@@ -204,12 +205,15 @@ class App:
                     # read in moves and replay the game
                     if filepath is not None and filepath != () and filepath != "":
                         self.loadBoardFromFile(filepath)
-                        self.refreshNeeded = True
+
+                        self.boardRefreshNeeded = True
+                        self.sideBarRefreshNeeded = True
                         self.gameBoardChanged = True
 
                 elif event.key == pygame.K_f and not self.info["isGameOver"]:
                     self.info["isFlipped"] = True if not self.info["isFlipped"] else False
-                    self.refreshNeeded = True
+
+                    self.boardRefreshNeeded = True
 
                 elif event.key == pygame.K_r:
                     self.resetGame()
@@ -217,41 +221,41 @@ class App:
                     self.resetInfo()
 
                     self.gameBoardChanged = True
-                    self.refreshNeeded = True
+                    self.boardRefreshNeeded = True
 
                 # you can't quit the analysis mode while it's about to run
                 elif event.key == pygame.K_a and not self.info["showMetrics"]:
                     self.info["analysisModeOn"] = True if not self.info["analysisModeOn"] else False
 
-                    self.refreshNeeded = True
+                    self.sideBarRefreshNeeded = True
 
                 elif self.info["analysisModeOn"]:
                     # you can't change the parameters when the analysis is about to run
                     if not self.info["showMetrics"]:
                         if event.key == pygame.K_PLUS:
                             self.aiEngine.infoAI["searchDepth"] += 1
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
                         elif event.key == pygame.K_MINUS:
                             self.aiEngine.infoAI["searchDepth"] -= 1 if self.aiEngine.infoAI["searchDepth"] > 1 else 0
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
                         elif event.key == pygame.K_1:
                             self.aiEngine.infoAI["alphaBetaOn"] = not self.aiEngine.infoAI["alphaBetaOn"]
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
                         elif event.key == pygame.K_2:
                             self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
                         elif event.key == pygame.K_RETURN:
                             self.info["showMetrics"] = True
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
                     else:
                         # showMetrics = true
                         if event.key == pygame.K_SPACE:
                             self.info["analysisRunning"] = not self.info["analysisRunning"]
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
 
                         elif event.key == pygame.K_RETURN:
                             self.info["showMetrics"] = False
-                            self.refreshNeeded = True
+                            self.sideBarRefreshNeeded = True
 
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:
                 [mouseX, mouseY] = pygame.mouse.get_pos()
@@ -287,9 +291,9 @@ class App:
                             self.makeMove(move)
                             self.gameBoardChanged = True
 
-                    self.refreshNeeded = True
+                    self.boardRefreshNeeded = True
 
-    def draw(self):
+    def drawBoard(self):
         # --- Drawing code should go here
         self.drawEngine.drawBackground()
 
@@ -301,14 +305,26 @@ class App:
 
         self.drawEngine.rotateIfFlipped()
 
-        self.drawEngine.drawSidebar()
-
-        self.drawEngine.combineSurfaces()
-
         self.drawEngine.drawGameOverScreen()
 
-        # --- Go ahead and update the screen with what we've drawn.
-        pygame.display.flip()
+    def drawSideBar(self):
+        self.drawEngine.drawSidebar()
+
+    def draw(self):
+        if self.boardRefreshNeeded:
+            self.drawBoard()
+
+        if self.sideBarRefreshNeeded:
+            self.drawSideBar()
+
+        if self.boardRefreshNeeded or self.sideBarRefreshNeeded:
+
+            self.drawEngine.combineSurfaces()
+            # --- Go ahead and update the screen with what we've drawn.
+            pygame.display.flip()
+
+            self.sideBarRefreshNeeded = False
+            self.boardRefreshNeeded = False
 
     def run(self):
 
@@ -325,9 +341,7 @@ class App:
                 self.info["pieceMoves"] = []
                 self.gameBoardChanged = False
 
-            if self.refreshNeeded:
-                self.draw()
-                self.refreshNeeded = False
+            self.draw()
 
             # --- Limit to 60 frames per second
             self.clock.tick(60)

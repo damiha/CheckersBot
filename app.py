@@ -5,7 +5,7 @@
 import tkinter as tk
 from tkinter import filedialog
 
-from draughts import Game
+from draughts import Game, WHITE as WHITE_PLAYER
 
 from draw_engine import *
 from helpers import getPositionOfCapturedPiece, isPromotion, setPieceMoves, getMove, outOfBounds
@@ -48,7 +48,11 @@ class App:
             "promotedPiece": (-1, -1),
             # to write out game to file
             "moveHistory": [],
-            "isFlipped": False
+            "isFlipped": False,
+
+            "isGameOver": False,
+            # 1 => player 1 won, 2 => player 2 won, 0 => draw, -1 => invalid entry
+            "whoWon": -1
         }
 
         # The clock will be used to control how fast the screen updates
@@ -57,6 +61,14 @@ class App:
         self.board = [row[:] for row in initial_board]
 
         self.drawEngine = DrawEngine(self.screen, self.board, self.info)
+
+    def resetBoard(self):
+        for y in range(tilesPerRow):
+            for x in range(tilesPerRow):
+                self.board[y][x] = initial_board[y][x]
+
+    def resetGame(self):
+        self.game = Game(variant="standard", fen="startpos")
 
     def resetInfo(self):
         self.info["player"] = 1
@@ -74,7 +86,19 @@ class App:
         self.info["moveHistory"] = []
 
         self.info["isFlipped"] = False
+        self.info["isGameOver"] = False
+        self.info["whoWon"] = -1
 
+    def setGameStatus(self):
+        self.info["isGameOver"] = self.game.is_over()
+
+        if self.info["isGameOver"]:
+            if self.game.is_draw() or self.game.is_threefold():
+                self.info["whoWon"] = 0
+            else:
+                self.info["whoWon"] = 1 if self.game.has_player_won(WHITE_PLAYER) else 2
+
+    # TODO: track the promoted pieces to draw a big K
     def makeMove(self, move):
 
         fromX, fromY = draughtsToCoords(move[0])
@@ -98,6 +122,7 @@ class App:
             self.info["promotedPiece"] = (toX, toY)
 
         self.game.move(move, isCapture)
+
         self.info["moveHistory"].append(move)
 
         thisPlayer = self.info["player"]
@@ -134,10 +159,8 @@ class App:
         file = open(filename, 'r')
         lines = file.readlines()
 
-        self.game = Game(variant="standard", fen="startpos")
-        self.board = [row[:] for row in initial_board]
-
-        self.drawEngine.reloadBoard(self.board)
+        self.resetGame()
+        self.resetBoard()
         self.resetInfo()
 
         for line in lines:
@@ -169,11 +192,19 @@ class App:
                         self.refreshNeeded = True
                         self.gameBoardChanged = True
 
-                elif event.key == pygame.K_f:
+                elif event.key == pygame.K_f and not self.info["isGameOver"]:
                     self.info["isFlipped"] = True if not self.info["isFlipped"] else False
                     self.refreshNeeded = True
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+                elif event.key == pygame.K_r:
+                    self.resetGame()
+                    self.resetBoard()
+                    self.resetInfo()
+
+                    self.gameBoardChanged = True
+                    self.refreshNeeded = True
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:
                 [mouseX, mouseY] = pygame.mouse.get_pos()
 
                 # convert mousePosition to tilePosition
@@ -199,7 +230,6 @@ class App:
                         self.info["selected"] = (tileX, tileY)
                         setPieceMoves(self.info)
 
-                    # TODO: make a valid move to the empty square
                     elif self.board[tileY][tileX] == 0:
 
                         move = getMove(self.info, tileX, tileY)
@@ -226,6 +256,8 @@ class App:
 
         self.drawEngine.combineSurfaces()
 
+        self.drawEngine.drawGameOverScreen()
+
         # --- Go ahead and update the screen with what we've drawn.
         pygame.display.flip()
 
@@ -236,6 +268,10 @@ class App:
             self.update()
 
             if self.gameBoardChanged:
+
+                # check if game is over and if so, draw game over menu
+                self.setGameStatus()
+
                 self.info["allMoves"] = self.game.get_possible_moves()
                 self.info["pieceMoves"] = []
                 self.gameBoardChanged = False

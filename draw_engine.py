@@ -3,6 +3,7 @@ import pygame
 from constants import *
 from helpers import draughtsToCoords
 
+
 class DrawEngine:
 
     def __init__(self, screen, board, info):
@@ -15,12 +16,16 @@ class DrawEngine:
         self.boardSurface = pygame.Surface(boardSize)
         self.sideBarSurface = pygame.Surface((windowSize[0] - boardSize[0], boardSize[1]))
 
+        # lay a transparent gray rect over the screen to indicate that the board doesn't accept user input at the moment
+        self.overlaySurface = pygame.Surface(boardSize)
+        self.overlaySurface.fill(GREY)
+        self.overlaySurface.set_alpha(OVERLAY_ALPHA)
+
         self.sideBarFont = pygame.font.SysFont("monospace", sideBarFontSize)
         self.numberingFont = pygame.font.SysFont("monospace", numberingFontSize)
         self.promotionFont = pygame.font.SysFont("monospace", promotionFontSize)
-
-    def reloadBoard(self, board):
-        self.board = board
+        self.gameOverFont = pygame.font.SysFont("monospace", gameOverFontSize)
+        self.restartFont = pygame.font.SysFont("monospace", restartFontSize)
 
     def drawSidebar(self):
         # Sidebar has dimensions 400 x 800 and is positioned at 800, 0
@@ -145,3 +150,48 @@ class DrawEngine:
 
                 self.boardSurface.blit(label, (tileX, tileY))
 
+    def drawGameOverScreen(self):
+
+        if self.info["isGameOver"]:
+            self.screen.blit(self.overlaySurface, (0, 0))
+
+            hasWonText = ""
+            if self.info["whoWon"] == 1:
+                hasWonText = "White has won"
+            elif self.info["whoWon"] == 2:
+                hasWonText = "Black has won"
+            else:
+                hasWonText = "It's a draw"
+
+            gameOverLabel = self.gameOverFont.render("Game Over!", 1, BLACK)
+            hasWonLabel = self.gameOverFont.render(hasWonText, 1, BLACK)
+            restartLabel = self.restartFont.render("Press [R] to restart", 1, BLACK)
+
+            # draw the game over box
+            gameOverSurface = pygame.Surface(gameOverSize)
+            gameOverSurface.fill(GREY)
+
+            # divide the rect into three vertical segments
+            # top for "Game Over!" (40% height)
+            gameOverLabelX = (gameOverSize[0] - gameOverLabel.get_width()) / 2
+            topHeight = gameOverSize[1] * 0.4
+
+            gameOverLabelY = (topHeight - gameOverLabel.get_height()) / 2
+
+            # mid for "White has won" or "Black has won (40% height)
+            hasWonLabelX = (gameOverSize[0] - hasWonLabel.get_width()) / 2
+            midHeight = topHeight
+
+            hasWonLabelY = topHeight + (midHeight - hasWonLabel.get_height()) / 2
+
+            # bottom for "R to restart the game" (10% height)
+            bottomHeight = gameOverSize[1] * 0.2
+            restartLabelX = (gameOverSize[0] - restartLabel.get_width()) / 2
+
+            restartLabelY = topHeight + midHeight + (bottomHeight - restartLabel.get_height()) / 2
+
+            gameOverSurface.blit(gameOverLabel, (gameOverLabelX, gameOverLabelY))
+            gameOverSurface.blit(hasWonLabel, (hasWonLabelX, hasWonLabelY))
+            gameOverSurface.blit(restartLabel, (restartLabelX, restartLabelY))
+
+            self.screen.blit(gameOverSurface, gameOverOffset)

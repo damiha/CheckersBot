@@ -7,9 +7,14 @@ WHITE = (255, 255, 255)
 LIGHT_BROWN = (255, 230, 170)
 DARK_BROWN = (80, 50, 0)
 
+OVERLAY_ALPHA = 192
+
 # Define some sizes
 windowSize = (1200, 800)
 boardSize = (800, 800)
+
+gameOverSize = (480, 320)
+gameOverOffset = ((boardSize[0] - gameOverSize[0]) / 2, (boardSize[1] - gameOverSize[1]) / 2)
 
 tilesPerRow = 10
 tileSize = boardSize[0] / tilesPerRow
@@ -19,7 +24,10 @@ pieceOffset = (tileSize - pieceSize) / 2
 
 numberingFontSize = 16
 sideBarFontSize = 16
+restartFontSize = 24
 promotionFontSize = 40
+gameOverFontSize = 56
+
 
 # measured in pixels
 lineHeight = 20

@@ -57,7 +57,8 @@ class App:
             # 1 => player 1 won, 2 => player 2 won, 0 => draw, -1 => invalid entry
             "whoWon": -1,
 
-            "analysisModeOn": False
+            "analysisModeOn": False,
+            "analysisRunning": False
         }
 
         # The clock will be used to control how fast the screen updates
@@ -99,6 +100,7 @@ class App:
         self.info["isGameOver"] = False
         self.info["whoWon"] = -1
         self.info["analysisModeOn"] = False
+        self.info["analysisRunning"] = False
 
     def setGameStatus(self):
         self.info["isGameOver"] = self.game.is_over()
@@ -215,24 +217,35 @@ class App:
                     self.gameBoardChanged = True
                     self.refreshNeeded = True
 
-                elif event.key == pygame.K_a:
+                # you can't quit the analysis mode while it's running
+                elif event.key == pygame.K_a and not self.info["analysisRunning"]:
                     self.info["analysisModeOn"] = True if not self.info["analysisModeOn"] else False
 
                     self.refreshNeeded = True
 
                 elif self.info["analysisModeOn"]:
-                    if event.key == pygame.K_PLUS:
-                        self.aiEngine.infoAI["searchDepth"] += 1
-                        self.refreshNeeded = True
-                    elif event.key == pygame.K_MINUS:
-                        self.aiEngine.infoAI["searchDepth"] -= 1 if self.aiEngine.infoAI["searchDepth"] > 1 else 0
-                        self.refreshNeeded = True
-                    elif event.key == pygame.K_1:
-                        self.aiEngine.infoAI["alphaBetaOn"] = not self.aiEngine.infoAI["alphaBetaOn"]
-                        self.refreshNeeded = True
-                    elif event.key == pygame.K_2:
-                        self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
-                        self.refreshNeeded = True
+                    # you can't change the parameters while the analysis is being performed
+                    if not self.info["analysisRunning"]:
+                        if event.key == pygame.K_PLUS:
+                            self.aiEngine.infoAI["searchDepth"] += 1
+                            self.refreshNeeded = True
+                        elif event.key == pygame.K_MINUS:
+                            self.aiEngine.infoAI["searchDepth"] -= 1 if self.aiEngine.infoAI["searchDepth"] > 1 else 0
+                            self.refreshNeeded = True
+                        elif event.key == pygame.K_1:
+                            self.aiEngine.infoAI["alphaBetaOn"] = not self.aiEngine.infoAI["alphaBetaOn"]
+                            self.refreshNeeded = True
+                        elif event.key == pygame.K_2:
+                            self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
+                            self.refreshNeeded = True
+                        elif event.key == pygame.K_RETURN:
+                            self.info["analysisRunning"] = True
+                            self.refreshNeeded = True
+                    else:
+                        # TODO: properly stop the analysis so that its output stays on screen
+                        if event.key == pygame.K_RETURN:
+                            self.info["analysisRunning"] = False
+                            self.refreshNeeded = True
 
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:
                 [mouseX, mouseY] = pygame.mouse.get_pos()

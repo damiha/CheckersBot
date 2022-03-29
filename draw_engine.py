@@ -78,6 +78,30 @@ class DrawEngine:
             self.sideBarSurface.blit(enterLabel, (offsetX, offsetY + 12 * lineHeight))
             self.sideBarSurface.blit(leaveAnalysisLabel, (offsetX, offsetY + 13 * lineHeight))
 
+            if self.info["analysisRunning"]:
+                self.sideBarSurface.blit(barLabel, (offsetX, offsetY + 15 * lineHeight))
+
+                evaluatedText = f"evaluated positions: {self.infoAI['evaluatedPositions']}"
+                evaluatedLabel = self.sideBarFont.render(evaluatedText, 1, WHITE)
+
+                runtimeText = f"runtime: {self.infoAI['runtime']}"
+                runtimeLabel = self.sideBarFont.render(runtimeText, 1, WHITE)
+
+                bestMoveText = f"best move: {self.infoAI['bestMove']}"
+                bestMoveLabel = self.sideBarFont.render(bestMoveText, 1, WHITE)
+
+                estimationText = f"estimation: {self.infoAI['estimation']}"
+                estimationLabel = self.sideBarFont.render(estimationText, 1, WHITE)
+
+                self.sideBarSurface.blit(evaluatedLabel, (offsetX, offsetY + 17 * lineHeight))
+                self.sideBarSurface.blit(runtimeLabel, (offsetX, offsetY + 18 * lineHeight))
+                self.sideBarSurface.blit(bestMoveLabel, (offsetX, offsetY + 19 * lineHeight))
+                self.sideBarSurface.blit(estimationLabel, (offsetX, offsetY + 20 * lineHeight))
+
+
+
+
+
     def drawAvailableMoves(self):
 
         for move in self.info["pieceMoves"]:

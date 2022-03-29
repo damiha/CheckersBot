@@ -64,7 +64,7 @@ class DrawEngine:
             moveSortingText = f"[2] sort moves: {self.infoAI['moveSortingOn']}"
             moveSortingLabel = self.sideBarFont.render(moveSortingText, 1, WHITE)
 
-            enterText = f"[ENTER] to show metrics"
+            enterText = f"[ENTER] to show/hide metrics"
             enterLabel = self.sideBarFont.render(enterText, 1, WHITE)
 
             leaveAnalysisText = f"[A] to leave analysis mode"
@@ -93,7 +93,7 @@ class DrawEngine:
                 estimationText = f"estimation: {self.infoAI['estimation']}"
                 estimationLabel = self.sideBarFont.render(estimationText, 1, WHITE)
 
-                runText = f"[SPACE] to start analysis"
+                runText = f"[SPACE] to start/stop analysis"
                 runLabel = self.sideBarFont.render(runText, 1, WHITE)
 
                 self.sideBarSurface.blit(evaluatedLabel, (offsetX, offsetY + 17 * lineHeight))

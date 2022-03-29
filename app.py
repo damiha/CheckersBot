@@ -12,6 +12,9 @@ from ai_engine import AIEngine
 from draw_engine import *
 from helpers import getPositionOfCapturedPiece, isPromotion, setPieceMoves, getMove, outOfBounds
 
+import time
+import threading
+
 
 class App:
 
@@ -70,9 +73,14 @@ class App:
 
         self.aiEngine = AIEngine()
         # call explicitly so call doesn't get optimized away
-        self.aiEngine.__int__()
+        self.aiEngine.__int__(self.info)
 
         self.drawEngine = DrawEngine(self)
+
+        # threads
+        self.refreshThread = None
+        self.timerThread = None
+        self.minimaxThread = None
 
     def resetBoard(self):
         for y in range(tilesPerRow):
@@ -190,6 +198,14 @@ class App:
             if event.type == pygame.QUIT:  # If user clicked close
                 self.isRunning = False  # Flag that we are done so we can exit the while loop
 
+                if self.info["analysisRunning"]:
+
+                    self.info["analysisRunning"] = False
+                    # closing window should also close the threads
+                    self.minimaxThread.join()
+                    self.timerThread.join()
+                    self.refreshThread.join()
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_s:
 
@@ -250,10 +266,30 @@ class App:
                     else:
                         # showMetrics = true
                         if event.key == pygame.K_SPACE:
-                            self.info["analysisRunning"] = not self.info["analysisRunning"]
+                            if not self.info["analysisRunning"]:
+
+                                self.info["analysisRunning"] = True
+
+                                self.refreshThread = threading.Thread(target=self.refreshSideBarPeriodically)
+                                self.timerThread = threading.Thread(target=self.aiEngine.runTimer)
+                                self.minimaxThread = threading.Thread(target=self.aiEngine.runMinimax)
+
+                                self.refreshThread.start()
+                                self.timerThread.start()
+                                self.minimaxThread.start()
+                            else:
+                                self.info["analysisRunning"] = False
+
+                                # is already running, so stop the threads
+                                self.minimaxThread.join()
+                                self.timerThread.join()
+                                self.refreshThread.join()
+
                             self.sideBarRefreshNeeded = True
 
-                        elif event.key == pygame.K_RETURN:
+                        # you can only disable the metrics when the analysis is not running
+                        # that way you avoid threads that run silently in the background
+                        if event.key == pygame.K_RETURN and not self.info["analysisRunning"]:
                             self.info["showMetrics"] = False
                             self.sideBarRefreshNeeded = True
 
@@ -309,6 +345,11 @@ class App:
 
     def drawSideBar(self):
         self.drawEngine.drawSidebar()
+
+    def refreshSideBarPeriodically(self):
+        while self.info["analysisRunning"]:
+            self.sideBarRefreshNeeded = True
+            time.sleep(0.01)
 
     def draw(self):
         if self.boardRefreshNeeded:

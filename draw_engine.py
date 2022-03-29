@@ -64,7 +64,7 @@ class DrawEngine:
             moveSortingText = f"[2] sort moves: {self.infoAI['moveSortingOn']}"
             moveSortingLabel = self.sideBarFont.render(moveSortingText, 1, WHITE)
 
-            enterText = f"[ENTER] to start/stop the analysis"
+            enterText = f"[ENTER] to show metrics"
             enterLabel = self.sideBarFont.render(enterText, 1, WHITE)
 
             leaveAnalysisText = f"[A] to leave analysis mode"
@@ -78,7 +78,7 @@ class DrawEngine:
             self.sideBarSurface.blit(enterLabel, (offsetX, offsetY + 12 * lineHeight))
             self.sideBarSurface.blit(leaveAnalysisLabel, (offsetX, offsetY + 13 * lineHeight))
 
-            if self.info["analysisRunning"]:
+            if self.info["showMetrics"]:
                 self.sideBarSurface.blit(barLabel, (offsetX, offsetY + 15 * lineHeight))
 
                 evaluatedText = f"evaluated positions: {self.infoAI['evaluatedPositions']}"
@@ -93,14 +93,14 @@ class DrawEngine:
                 estimationText = f"estimation: {self.infoAI['estimation']}"
                 estimationLabel = self.sideBarFont.render(estimationText, 1, WHITE)
 
+                runText = f"[SPACE] to start analysis"
+                runLabel = self.sideBarFont.render(runText, 1, WHITE)
+
                 self.sideBarSurface.blit(evaluatedLabel, (offsetX, offsetY + 17 * lineHeight))
                 self.sideBarSurface.blit(runtimeLabel, (offsetX, offsetY + 18 * lineHeight))
                 self.sideBarSurface.blit(bestMoveLabel, (offsetX, offsetY + 19 * lineHeight))
                 self.sideBarSurface.blit(estimationLabel, (offsetX, offsetY + 20 * lineHeight))
-
-
-
-
+                self.sideBarSurface.blit(runLabel, (offsetX, offsetY + 22 * lineHeight))
 
     def drawAvailableMoves(self):
 

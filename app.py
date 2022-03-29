@@ -58,6 +58,7 @@ class App:
             "whoWon": -1,
 
             "analysisModeOn": False,
+            "showMetrics": False,
             "analysisRunning": False
         }
 
@@ -100,6 +101,7 @@ class App:
         self.info["isGameOver"] = False
         self.info["whoWon"] = -1
         self.info["analysisModeOn"] = False
+        self.info["showMetrics"] = False
         self.info["analysisRunning"] = False
 
     def setGameStatus(self):
@@ -217,15 +219,15 @@ class App:
                     self.gameBoardChanged = True
                     self.refreshNeeded = True
 
-                # you can't quit the analysis mode while it's running
-                elif event.key == pygame.K_a and not self.info["analysisRunning"]:
+                # you can't quit the analysis mode while it's about to run
+                elif event.key == pygame.K_a and not self.info["showMetrics"]:
                     self.info["analysisModeOn"] = True if not self.info["analysisModeOn"] else False
 
                     self.refreshNeeded = True
 
                 elif self.info["analysisModeOn"]:
-                    # you can't change the parameters while the analysis is being performed
-                    if not self.info["analysisRunning"]:
+                    # you can't change the parameters when the analysis is about to run
+                    if not self.info["showMetrics"]:
                         if event.key == pygame.K_PLUS:
                             self.aiEngine.infoAI["searchDepth"] += 1
                             self.refreshNeeded = True
@@ -239,12 +241,16 @@ class App:
                             self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
                             self.refreshNeeded = True
                         elif event.key == pygame.K_RETURN:
-                            self.info["analysisRunning"] = True
+                            self.info["showMetrics"] = True
                             self.refreshNeeded = True
                     else:
-                        # TODO: properly stop the analysis so that its output stays on screen
-                        if event.key == pygame.K_RETURN:
-                            self.info["analysisRunning"] = False
+                        # showMetrics = true
+                        if event.key == pygame.K_SPACE:
+                            self.info["analysisRunning"] = not self.info["analysisRunning"]
+                            self.refreshNeeded = True
+
+                        elif event.key == pygame.K_RETURN:
+                            self.info["showMetrics"] = False
                             self.refreshNeeded = True
 
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:

@@ -5,8 +5,10 @@
 import tkinter as tk
 from tkinter import filedialog
 
+import pygame
 from draughts import Game, WHITE as WHITE_PLAYER
 
+from ai_engine import AIEngine
 from draw_engine import *
 from helpers import getPositionOfCapturedPiece, isPromotion, setPieceMoves, getMove, outOfBounds
 
@@ -39,6 +41,8 @@ class App:
             # stored as indices from 0 to tilesPerRow - 1
             "mousex": 0,
             "mousey": 0,
+            "blackPiecesCaptured": 0,
+            "whitePiecesCaptured": 0,
             "selected": (-1, -1),
             "allMoves": [],
             "pieceMoves": [],
@@ -51,7 +55,9 @@ class App:
 
             "isGameOver": False,
             # 1 => player 1 won, 2 => player 2 won, 0 => draw, -1 => invalid entry
-            "whoWon": -1
+            "whoWon": -1,
+
+            "analysisModeOn": False
         }
 
         # The clock will be used to control how fast the screen updates
@@ -59,7 +65,11 @@ class App:
 
         self.board = [row[:] for row in initial_board]
 
-        self.drawEngine = DrawEngine(self.screen, self.board, self.info)
+        self.aiEngine = AIEngine()
+        # call explicitly so call doesn't get optimized away
+        self.aiEngine.__int__()
+
+        self.drawEngine = DrawEngine(self)
 
     def resetBoard(self):
         for y in range(tilesPerRow):
@@ -74,6 +84,8 @@ class App:
         # stored as indices from 0 to tilesPerRow - 1
         self.info["mousex"] = 0
         self.info["mousey"] = 0
+        self.info["blackPiecesCaptured"] = 0
+        self.info["whitePiecesCaptured"] = 0
         self.info["selected"] = (-1, -1)
         self.info["allMoves"] = []
         self.info["pieceMoves"] = []
@@ -86,6 +98,7 @@ class App:
         self.info["isFlipped"] = False
         self.info["isGameOver"] = False
         self.info["whoWon"] = -1
+        self.info["analysisModeOn"] = False
 
     def setGameStatus(self):
         self.info["isGameOver"] = self.game.is_over()
@@ -115,6 +128,11 @@ class App:
             # set as captured but don't remove piece from board immediately
             self.board[capturedY][capturedX] = -1
             self.info["capturedPieces"].append((capturedX, capturedY))
+
+            if self.info["player"] == 1:
+                self.info["blackPiecesCaptured"] += 1
+            else:
+                self.info["whitePiecesCaptured"] += 1
 
         self.game.move(move, isCapture)
 
@@ -197,6 +215,25 @@ class App:
                     self.gameBoardChanged = True
                     self.refreshNeeded = True
 
+                elif event.key == pygame.K_a:
+                    self.info["analysisModeOn"] = True if not self.info["analysisModeOn"] else False
+
+                    self.refreshNeeded = True
+
+                elif self.info["analysisModeOn"]:
+                    if event.key == pygame.K_PLUS:
+                        self.aiEngine.infoAI["searchDepth"] += 1
+                        self.refreshNeeded = True
+                    elif event.key == pygame.K_MINUS:
+                        self.aiEngine.infoAI["searchDepth"] -= 1 if self.aiEngine.infoAI["searchDepth"] > 1 else 0
+                        self.refreshNeeded = True
+                    elif event.key == pygame.K_1:
+                        self.aiEngine.infoAI["alphaBetaOn"] = not self.aiEngine.infoAI["alphaBetaOn"]
+                        self.refreshNeeded = True
+                    elif event.key == pygame.K_2:
+                        self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
+                        self.refreshNeeded = True
+
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:
                 [mouseX, mouseY] = pygame.mouse.get_pos()
 
@@ -209,7 +246,7 @@ class App:
                     tileX = (tilesPerRow - 1) - tileX
                     tileY = (tilesPerRow - 1) - tileY
 
-                # prevent that a click outside of the game window leads to an out of bounds exception
+                # prevent that a click outside the game window leads to an out-of-bounds exception
                 if not outOfBounds(tileX, tileY):
 
                     self.info["mousex"] = tileX

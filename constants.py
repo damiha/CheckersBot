@@ -28,6 +28,7 @@ restartFontSize = 24
 promotionFontSize = 40
 gameOverFontSize = 56
 
+barLength = 40
 
 # measured in pixels
 lineHeight = 20

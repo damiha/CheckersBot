@@ -6,11 +6,12 @@ from helpers import draughtsToCoords
 
 class DrawEngine:
 
-    def __init__(self, screen, board, info):
+    def __init__(self, app):
 
-        self.screen = screen
-        self.board = board
-        self.info = info
+        self.screen = app.screen
+        self.board = app.board
+        self.info = app.info
+        self.infoAI = app.aiEngine.infoAI
 
         # draw everything game related on to here to rotate easily (if whole screen is rotated, then sidebar is as well)
         self.boardSurface = pygame.Surface(boardSize)
@@ -35,8 +36,8 @@ class DrawEngine:
         playerText = "player: " + ("white" if self.info["player"] == 1 else "black")
         playerLabel = self.sideBarFont.render(playerText, 1, WHITE)
 
-        mouseText = f"mouse: x = {self.info['mousex']}, y = {self.info['mousey']}"
-        mouseLabel = self.sideBarFont.render(mouseText, 1, WHITE)
+        piecesText = f"white captured: {self.info['blackPiecesCaptured']}, black captured: {self.info['whitePiecesCaptured']}"
+        piecesLabel = self.sideBarFont.render(piecesText, 1, WHITE)
 
         loadStoreText = "load [L], store [S]"
         loadStoreLabel = self.sideBarFont.render(loadStoreText, 1, WHITE)
@@ -46,9 +47,36 @@ class DrawEngine:
 
         self.sideBarSurface.fill(BLACK)
         self.sideBarSurface.blit(playerLabel, (offsetX, offsetY))
-        self.sideBarSurface.blit(mouseLabel, (offsetX, offsetY + 1 * lineHeight))
+        self.sideBarSurface.blit(piecesLabel, (offsetX, offsetY + 1 * lineHeight))
         self.sideBarSurface.blit(loadStoreLabel, (offsetX, offsetY + 3 * lineHeight))
         self.sideBarSurface.blit(flipAnalyzeLabel, (offsetX, offsetY + 4 * lineHeight))
+
+        if self.info["analysisModeOn"]:
+            barText = "-" * barLength
+            barLabel = self.sideBarFont.render(barText, 1, WHITE)
+
+            searchDepthText = f"[+/-] search-depth: {self.infoAI['searchDepth']}"
+            searchDepthLabel = self.sideBarFont.render(searchDepthText, 1, WHITE)
+
+            alphaBetaText = f"[1] alpha-beta-pruning: {self.infoAI['alphaBetaOn']}"
+            alphaBetaLabel = self.sideBarFont.render(alphaBetaText, 1, WHITE)
+
+            moveSortingText = f"[2] sort moves: {self.infoAI['moveSortingOn']}"
+            moveSortingLabel = self.sideBarFont.render(moveSortingText, 1, WHITE)
+
+            enterText = f"[ENTER] to start/stop the analysis"
+            enterLabel = self.sideBarFont.render(enterText, 1, WHITE)
+
+            leaveAnalysisText = f"[A] to leave analysis mode"
+            leaveAnalysisLabel = self.sideBarFont.render(leaveAnalysisText, 1, WHITE)
+
+            self.sideBarSurface.blit(barLabel, (offsetX, offsetY + 6 * lineHeight))
+            self.sideBarSurface.blit(searchDepthLabel, (offsetX, offsetY + 8 * lineHeight))
+            self.sideBarSurface.blit(alphaBetaLabel, (offsetX, offsetY + 9 * lineHeight))
+            self.sideBarSurface.blit(moveSortingLabel, (offsetX, offsetY + 10 * lineHeight))
+
+            self.sideBarSurface.blit(enterLabel, (offsetX, offsetY + 12 * lineHeight))
+            self.sideBarSurface.blit(leaveAnalysisLabel, (offsetX, offsetY + 13 * lineHeight))
 
     def drawAvailableMoves(self):
 

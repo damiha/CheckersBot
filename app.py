@@ -155,15 +155,16 @@ class App:
                 if event.key == pygame.K_s:
 
                     filepath = filedialog.askopenfilename()
+
                     # write out moves
-                    if filepath is not None and filepath != "":
+                    if filepath is not None and filepath != () and filepath != "":
                         self.writeMovesToFile(filepath)
 
                 elif event.key == pygame.K_l:
 
                     filepath = filedialog.askopenfilename()
                     # read in moves and replay the game
-                    if filepath is not None and filepath != "":
+                    if filepath is not None and filepath != () and filepath != "":
                         self.loadBoardFromFile(filepath)
                         self.refreshNeeded = True
                         self.gameBoardChanged = True

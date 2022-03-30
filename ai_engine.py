@@ -4,11 +4,7 @@ import time
 
 class AIEngine:
 
-    def __init__(self):
-        self.endTime = None
-        self.startTime = None
-
-    def __int__(self, appInfo):
+    def __init__(self, appInfo):
 
         self.startTime = -1.0
         self.endTime = -1.0

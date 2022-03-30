@@ -2,6 +2,7 @@
 class FileManager:
 
     def __init__(self, boardManager):
+
         self.boardManager = boardManager
 
     def writeMovesToFile(self, filename):

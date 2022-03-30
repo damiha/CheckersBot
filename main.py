@@ -3,7 +3,7 @@ from app import App
 
 app = App()
 
-while app.isRunning:
+while app.isRunning():
 
     app.update()
 

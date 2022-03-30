@@ -10,7 +10,7 @@ class DrawEngine:
 
         self.screen = app.screen
         self.boardManager = app.boardManager
-        self.info = app.info
+        self.appInfo = app.appInfo
         self.infoAI = app.aiEngine.infoAI
 
         # draw everything game related on to here to rotate easily (if whole screen is rotated, then sidebar is as well)
@@ -28,79 +28,107 @@ class DrawEngine:
         self.gameOverFont = pygame.font.SysFont("monospace", gameOverFontSize)
         self.restartFont = pygame.font.SysFont("monospace", restartFontSize)
 
-    def drawSidebar(self):
+        # predefined labels to make layouts easier
+        barText = "-" * barLength
+        self.barLabel = self.sideBarFont.render(barText, True, WHITE)
+
+        blankText = " " * barLength
+        self.blankLabel = self.sideBarFont.render(blankText, True, WHITE)
+
+    def drawLabels(self, labels, lineNumber):
+
         # Sidebar has dimensions 400 x 800 and is positioned at 800, 0
         # padding is 5, 5
         offsetX, offsetY = (5, 5)
 
+        for label in labels:
+            self.sideBarSurface.blit(label, (offsetX, offsetY + lineNumber * lineHeight))
+            lineNumber += 1
+
+    def drawSidebar(self):
+
         playerText = "player: " + ("white" if self.boardManager.player == 1 else "black")
-        playerLabel = self.sideBarFont.render(playerText, 1, WHITE)
+        playerLabel = self.sideBarFont.render(playerText, True, WHITE)
 
         piecesText = f"white captured: {self.boardManager.blackPiecesCaptured}, black captured: {self.boardManager.whitePiecesCaptured}"
-        piecesLabel = self.sideBarFont.render(piecesText, 1, WHITE)
+        piecesLabel = self.sideBarFont.render(piecesText, True, WHITE)
 
         loadStoreText = "load [L], store [S]"
-        loadStoreLabel = self.sideBarFont.render(loadStoreText, 1, WHITE)
+        loadStoreLabel = self.sideBarFont.render(loadStoreText, True, WHITE)
 
         flipAnalyzeText = "flip [F], analyze [A]"
-        flipAnalyzeLabel = self.sideBarFont.render(flipAnalyzeText, 1, WHITE)
+        flipAnalyzeLabel = self.sideBarFont.render(flipAnalyzeText, True, WHITE)
 
         self.sideBarSurface.fill(BLACK)
-        self.sideBarSurface.blit(playerLabel, (offsetX, offsetY))
-        self.sideBarSurface.blit(piecesLabel, (offsetX, offsetY + 1 * lineHeight))
-        self.sideBarSurface.blit(loadStoreLabel, (offsetX, offsetY + 3 * lineHeight))
-        self.sideBarSurface.blit(flipAnalyzeLabel, (offsetX, offsetY + 4 * lineHeight))
 
-        if self.info["analysisModeOn"]:
-            barText = "-" * barLength
-            barLabel = self.sideBarFont.render(barText, 1, WHITE)
+        labels = [
+            playerLabel,
+            piecesLabel,
+            self.blankLabel,
+            loadStoreLabel,
+            flipAnalyzeLabel
+        ]
+
+        self.drawLabels(labels, 0)
+
+        if self.appInfo.analysisModeOn:
 
             searchDepthText = f"[+/-] search-depth: {self.infoAI['searchDepth']}"
-            searchDepthLabel = self.sideBarFont.render(searchDepthText, 1, WHITE)
+            searchDepthLabel = self.sideBarFont.render(searchDepthText, True, WHITE)
 
             alphaBetaText = f"[1] alpha-beta-pruning: {self.infoAI['alphaBetaOn']}"
-            alphaBetaLabel = self.sideBarFont.render(alphaBetaText, 1, WHITE)
+            alphaBetaLabel = self.sideBarFont.render(alphaBetaText, True, WHITE)
 
             moveSortingText = f"[2] sort moves: {self.infoAI['moveSortingOn']}"
-            moveSortingLabel = self.sideBarFont.render(moveSortingText, 1, WHITE)
+            moveSortingLabel = self.sideBarFont.render(moveSortingText, True, WHITE)
 
             enterText = f"[ENTER] to show/hide metrics"
-            enterLabel = self.sideBarFont.render(enterText, 1, WHITE)
+            enterLabel = self.sideBarFont.render(enterText, True, WHITE)
 
             leaveAnalysisText = f"[A] to leave analysis mode"
-            leaveAnalysisLabel = self.sideBarFont.render(leaveAnalysisText, 1, WHITE)
+            leaveAnalysisLabel = self.sideBarFont.render(leaveAnalysisText, True, WHITE)
 
-            self.sideBarSurface.blit(barLabel, (offsetX, offsetY + 6 * lineHeight))
-            self.sideBarSurface.blit(searchDepthLabel, (offsetX, offsetY + 8 * lineHeight))
-            self.sideBarSurface.blit(alphaBetaLabel, (offsetX, offsetY + 9 * lineHeight))
-            self.sideBarSurface.blit(moveSortingLabel, (offsetX, offsetY + 10 * lineHeight))
+            analysisLabels = [
+                self.barLabel,
+                self.blankLabel,
+                searchDepthLabel,
+                alphaBetaLabel,
+                moveSortingLabel,
+                self.blankLabel,
+                enterLabel,
+                leaveAnalysisLabel
+            ]
 
-            self.sideBarSurface.blit(enterLabel, (offsetX, offsetY + 12 * lineHeight))
-            self.sideBarSurface.blit(leaveAnalysisLabel, (offsetX, offsetY + 13 * lineHeight))
+            self.drawLabels(analysisLabels, 6)
 
-            if self.info["showMetrics"]:
-                self.sideBarSurface.blit(barLabel, (offsetX, offsetY + 15 * lineHeight))
+            if self.appInfo.showMetrics:
 
                 evaluatedText = f"evaluated positions: {self.infoAI['evaluatedPositions']}"
-                evaluatedLabel = self.sideBarFont.render(evaluatedText, 1, WHITE)
+                evaluatedLabel = self.sideBarFont.render(evaluatedText, True, WHITE)
 
                 runtimeText = f"runtime: {self.infoAI['runtime']}"
-                runtimeLabel = self.sideBarFont.render(runtimeText, 1, WHITE)
+                runtimeLabel = self.sideBarFont.render(runtimeText, True, WHITE)
 
                 bestMoveText = f"best move: {self.infoAI['bestMove']}"
-                bestMoveLabel = self.sideBarFont.render(bestMoveText, 1, WHITE)
+                bestMoveLabel = self.sideBarFont.render(bestMoveText, True, WHITE)
 
                 estimationText = f"estimation: {self.infoAI['estimation']}"
-                estimationLabel = self.sideBarFont.render(estimationText, 1, WHITE)
+                estimationLabel = self.sideBarFont.render(estimationText, True, WHITE)
 
                 runText = f"[SPACE] to start/stop analysis"
-                runLabel = self.sideBarFont.render(runText, 1, WHITE)
+                runLabel = self.sideBarFont.render(runText, True, WHITE)
 
-                self.sideBarSurface.blit(evaluatedLabel, (offsetX, offsetY + 17 * lineHeight))
-                self.sideBarSurface.blit(runtimeLabel, (offsetX, offsetY + 18 * lineHeight))
-                self.sideBarSurface.blit(bestMoveLabel, (offsetX, offsetY + 19 * lineHeight))
-                self.sideBarSurface.blit(estimationLabel, (offsetX, offsetY + 20 * lineHeight))
-                self.sideBarSurface.blit(runLabel, (offsetX, offsetY + 22 * lineHeight))
+                metricsLabels = [
+                    self.barLabel,
+                    self.blankLabel,
+                    evaluatedLabel,
+                    runtimeLabel,
+                    bestMoveLabel,
+                    estimationLabel,
+                    runLabel
+                ]
+
+                self.drawLabels(metricsLabels, 15)
 
     def drawAvailableMoves(self):
 
@@ -117,7 +145,7 @@ class DrawEngine:
                 pygame.draw.ellipse(self.boardSurface, BLACK, [destX, destY, cursorDiameter, cursorDiameter], 0)
 
     def rotateIfFlipped(self):
-        if self.info["isFlipped"]:
+        if self.appInfo.isFlipped:
             self.boardSurface = pygame.transform.rotate(self.boardSurface, 180)
 
     def combineSurfaces(self):
@@ -144,11 +172,11 @@ class DrawEngine:
     # draw the pieces
     def drawPieces(self):
 
-        blackPromotionLabel = self.promotionFont.render("K", 1, WHITE)
-        whitePromotionLabel = self.promotionFont.render("K", 1, BLACK)
+        blackPromotionLabel = self.promotionFont.render("K", True, WHITE)
+        whitePromotionLabel = self.promotionFont.render("K", True, BLACK)
 
         # if flipped, rotate so that when you rotate the boardSurface, labels remain readable
-        if self.info["isFlipped"]:
+        if self.appInfo.isFlipped:
             blackPromotionLabel = pygame.transform.rotate(blackPromotionLabel, 180)
             whitePromotionLabel = pygame.transform.rotate(whitePromotionLabel, 180)
 
@@ -192,7 +220,7 @@ class DrawEngine:
                 label = self.numberingFont.render(str(counter), True, WHITE)
 
                 # rotate as well when boardSurface is rotated so that text remains readable
-                if self.info["isFlipped"]:
+                if self.appInfo.isFlipped:
                     label = pygame.transform.rotate(label, 180)
 
                 counter = counter + 1
@@ -204,7 +232,6 @@ class DrawEngine:
         if self.boardManager.isGameOver:
             self.boardSurface.blit(self.overlaySurface, (0, 0))
 
-            hasWonText = ""
             if self.boardManager.whoWon == 1:
                 hasWonText = "White has won"
             elif self.boardManager.whoWon == 2:
@@ -212,9 +239,9 @@ class DrawEngine:
             else:
                 hasWonText = "It's a draw"
 
-            gameOverLabel = self.gameOverFont.render("Game Over!", 1, BLACK)
-            hasWonLabel = self.gameOverFont.render(hasWonText, 1, BLACK)
-            restartLabel = self.restartFont.render("Press [R] to restart", 1, BLACK)
+            gameOverLabel = self.gameOverFont.render("Game Over!", True, BLACK)
+            hasWonLabel = self.gameOverFont.render(hasWonText, True, BLACK)
+            restartLabel = self.restartFont.render("Press [R] to restart", True, BLACK)
 
             # draw the game over box
             gameOverSurface = pygame.Surface(gameOverSize)

@@ -1,19 +1,20 @@
 
 import time
 
+
 class AIEngine:
 
     def __init__(self):
         self.endTime = None
         self.startTime = None
 
-    def __int__(self, info):
+    def __int__(self, appInfo):
 
         self.startTime = -1.0
         self.endTime = -1.0
 
         # get app info to receive commands
-        self.info = info
+        self.appInfo = appInfo
 
         self.infoAI = {
             "alphaBetaOn": False,
@@ -32,7 +33,7 @@ class AIEngine:
     def runTimer(self):
         self.startTime = time.perf_counter()
 
-        while self.info["analysisRunning"]:
+        while self.appInfo.analysisRunning:
 
             self.endTime = time.perf_counter()
             self.infoAI["runtime"] = round(self.endTime - self.startTime, 2)
@@ -47,7 +48,7 @@ class AIEngine:
         self.infoAI["estimation"] = 0
 
         # dummy code to check how it looks on the sidebar
-        while self.info["analysisRunning"]:
+        while self.appInfo.analysisRunning:
 
             self.infoAI["evaluatedPositions"] += 1
             self.infoAI["estimation"] += 1

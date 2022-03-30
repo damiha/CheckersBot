@@ -9,7 +9,7 @@ class DrawEngine:
     def __init__(self, app):
 
         self.screen = app.screen
-        self.board = app.board
+        self.boardManager = app.boardManager
         self.info = app.info
         self.infoAI = app.aiEngine.infoAI
 
@@ -33,10 +33,10 @@ class DrawEngine:
         # padding is 5, 5
         offsetX, offsetY = (5, 5)
 
-        playerText = "player: " + ("white" if self.info["player"] == 1 else "black")
+        playerText = "player: " + ("white" if self.boardManager.player == 1 else "black")
         playerLabel = self.sideBarFont.render(playerText, 1, WHITE)
 
-        piecesText = f"white captured: {self.info['blackPiecesCaptured']}, black captured: {self.info['whitePiecesCaptured']}"
+        piecesText = f"white captured: {self.boardManager.blackPiecesCaptured}, black captured: {self.boardManager.whitePiecesCaptured}"
         piecesLabel = self.sideBarFont.render(piecesText, 1, WHITE)
 
         loadStoreText = "load [L], store [S]"
@@ -104,14 +104,14 @@ class DrawEngine:
 
     def drawAvailableMoves(self):
 
-        for move in self.info["pieceMoves"]:
+        for move in self.boardManager.pieceMoves:
 
             toPos = draughtsToCoords(move[1])
 
             destX = toPos[0] * tileSize + cursorOffset
             destY = toPos[1] * tileSize + cursorOffset
 
-            if self.info["player"] == 1:
+            if self.boardManager.player == 1:
                 pygame.draw.ellipse(self.boardSurface, WHITE, [destX, destY, cursorDiameter, cursorDiameter], 0)
             else:
                 pygame.draw.ellipse(self.boardSurface, BLACK, [destX, destY, cursorDiameter, cursorDiameter], 0)
@@ -155,10 +155,7 @@ class DrawEngine:
         for y in range(tilesPerRow):
             for x in range(tilesPerRow):
 
-                board_content = self.board[y][x]
-
-                # draw inner and outer ellipse to visualize the checker piece
-                tileOffset = 5
+                board_content = self.boardManager.board[y][x]
 
                 # pieces that were captured but remain on the board
                 if board_content == -1:
@@ -204,13 +201,13 @@ class DrawEngine:
 
     def drawGameOverScreen(self):
 
-        if self.info["isGameOver"]:
-            self.screen.blit(self.overlaySurface, (0, 0))
+        if self.boardManager.isGameOver:
+            self.boardSurface.blit(self.overlaySurface, (0, 0))
 
             hasWonText = ""
-            if self.info["whoWon"] == 1:
+            if self.boardManager.whoWon == 1:
                 hasWonText = "White has won"
-            elif self.info["whoWon"] == 2:
+            elif self.boardManager.whoWon == 2:
                 hasWonText = "Black has won"
             else:
                 hasWonText = "It's a draw"
@@ -246,4 +243,4 @@ class DrawEngine:
             gameOverSurface.blit(hasWonLabel, (hasWonLabelX, hasWonLabelY))
             gameOverSurface.blit(restartLabel, (restartLabelX, restartLabelY))
 
-            self.screen.blit(gameOverSurface, gameOverOffset)
+            self.boardSurface.blit(gameOverSurface, gameOverOffset)

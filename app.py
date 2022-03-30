@@ -9,8 +9,9 @@ import pygame
 from draughts import Game, WHITE as WHITE_PLAYER
 
 from ai_engine import AIEngine
+from board_manager import BoardManager
 from draw_engine import *
-from helpers import getPositionOfCapturedPiece, isPromotion, setPieceMoves, getMove, outOfBounds
+from helpers import outOfBounds
 
 import time
 import threading
@@ -36,31 +37,14 @@ class App:
         # triggered when pieces have moved, have been captured
         self.gameBoardChanged = True
 
-        # internal representation using pydraughts
-        self.game = Game(variant="standard", fen="startpos")
+        self.boardManager = BoardManager()
 
         self.info = {
-            # white: 1, black: 2
-            "player": 1,
             # stored as indices from 0 to tilesPerRow - 1
             "mousex": 0,
             "mousey": 0,
-            "blackPiecesCaptured": 0,
-            "whitePiecesCaptured": 0,
-            "selected": (-1, -1),
-            "allMoves": [],
-            "pieceMoves": [],
-            # to record a capture sequence
-            "capturedPieces": [],
-            "isPromotion": False,
-            # to write out game to file
-            "moveHistory": [],
+
             "isFlipped": False,
-
-            "isGameOver": False,
-            # 1 => player 1 won, 2 => player 2 won, 0 => draw, -1 => invalid entry
-            "whoWon": -1,
-
             "analysisModeOn": False,
             "showMetrics": False,
             "analysisRunning": False
@@ -68,8 +52,6 @@ class App:
 
         # The clock will be used to control how fast the screen updates
         self.clock = pygame.time.Clock()
-
-        self.board = [row[:] for row in initial_board]
 
         self.aiEngine = AIEngine()
         # call explicitly so call doesn't get optimized away
@@ -82,97 +64,22 @@ class App:
         self.timerThread = None
         self.minimaxThread = None
 
-    def resetBoard(self):
-        for y in range(tilesPerRow):
-            for x in range(tilesPerRow):
-                self.board[y][x] = initial_board[y][x]
-
-    def resetGame(self):
-        self.game = Game(variant="standard", fen="startpos")
-
     def resetInfo(self):
-        self.info["player"] = 1
+
         # stored as indices from 0 to tilesPerRow - 1
         self.info["mousex"] = 0
         self.info["mousey"] = 0
-        self.info["blackPiecesCaptured"] = 0
-        self.info["whitePiecesCaptured"] = 0
-        self.info["selected"] = (-1, -1)
-        self.info["allMoves"] = []
-        self.info["pieceMoves"] = []
-        # to record a capture sequence
-        self.info["capturedPieces"] = []
-        self.info["isPromotion"] = False
-        # to write out game to file
-        self.info["moveHistory"] = []
 
         self.info["isFlipped"] = False
-        self.info["isGameOver"] = False
-        self.info["whoWon"] = -1
         self.info["analysisModeOn"] = False
         self.info["showMetrics"] = False
         self.info["analysisRunning"] = False
-
-    def setGameStatus(self):
-        self.info["isGameOver"] = self.game.is_over()
-
-        if self.info["isGameOver"]:
-            if self.game.is_draw() or self.game.is_threefold():
-                self.info["whoWon"] = 0
-            else:
-                self.info["whoWon"] = 1 if self.game.has_player_won(WHITE_PLAYER) else 2
-
-    def makeMove(self, move):
-
-        # use (now) old board position to determine if a promotion occurred
-        # promotion moves are last moves, nothing happens when you get to the promotion square and jump away afterwards
-        self.info["isPromotion"] = isPromotion(self.board, move)
-
-        fromX, fromY = draughtsToCoords(move[0])
-        toX, toY = draughtsToCoords(move[1])
-
-        self.board[toY][toX] = self.board[fromY][fromX]
-        self.board[fromY][fromX] = 0
-
-        capturedX, capturedY = getPositionOfCapturedPiece(self.board, self.info, move)
-        isCapture = (capturedX, capturedY) != (-1, -1)
-
-        if isCapture:
-            # set as captured but don't remove piece from board immediately
-            self.board[capturedY][capturedX] = -1
-            self.info["capturedPieces"].append((capturedX, capturedY))
-
-            if self.info["player"] == 1:
-                self.info["blackPiecesCaptured"] += 1
-            else:
-                self.info["whitePiecesCaptured"] += 1
-
-        self.game.move(move, isCapture)
-
-        self.info["moveHistory"].append(move)
-
-        thisPlayer = self.info["player"]
-        nextPlayer = 1 if self.game.whose_turn() == 2 else 2
-
-        # move ends players turn, realize promotions and captures
-        if nextPlayer != thisPlayer:
-
-            for (capturedX, capturedY) in self.info["capturedPieces"]:
-                self.board[capturedY][capturedX] = 0
-
-            if self.info["isPromotion"]:
-                self.board[toY][toX] += 1
-
-            self.info["capturedPieces"] = []
-            self.info["isPromotion"] = False
-
-        self.info["player"] = nextPlayer
 
     def writeMovesToFile(self, filename):
 
         output = ""
 
-        for move in self.info["moveHistory"]:
+        for move in self.boardManager.moveHistory:
             output += (str(move[0]) + "," + str(move[1]) + "\n")
 
         with open(filename, 'w') as f:
@@ -183,14 +90,12 @@ class App:
         file = open(filename, 'r')
         lines = file.readlines()
 
-        self.resetGame()
-        self.resetBoard()
-        self.resetInfo()
+        self.boardManager.reset()
 
         for line in lines:
             components = line.split(",")
             draughtsFrom, draughtsTo = int(components[0]), int(components[1])
-            self.makeMove([draughtsFrom, draughtsTo])
+            self.boardManager.makeMove([draughtsFrom, draughtsTo])
 
     def update(self):
         # --- Main event loop
@@ -220,29 +125,29 @@ class App:
                     filepath = filedialog.askopenfilename()
                     # read in moves and replay the game
                     if filepath is not None and filepath != () and filepath != "":
+
                         self.loadBoardFromFile(filepath)
 
                         self.boardRefreshNeeded = True
                         self.sideBarRefreshNeeded = True
                         self.gameBoardChanged = True
 
-                elif event.key == pygame.K_f and not self.info["isGameOver"]:
-                    self.info["isFlipped"] = True if not self.info["isFlipped"] else False
+                elif event.key == pygame.K_f and not self.boardManager.isGameOver:
 
+                    self.info["isFlipped"] = not self.info["isFlipped"]
                     self.boardRefreshNeeded = True
 
                 elif event.key == pygame.K_r:
-                    self.resetGame()
-                    self.resetBoard()
-                    self.resetInfo()
+
+                    self.boardManager.reset()
 
                     self.gameBoardChanged = True
                     self.boardRefreshNeeded = True
 
                 # you can't quit the analysis mode while it's about to run
                 elif event.key == pygame.K_a and not self.info["showMetrics"]:
-                    self.info["analysisModeOn"] = True if not self.info["analysisModeOn"] else False
 
+                    self.info["analysisModeOn"] = not self.info["analysisModeOn"]
                     self.sideBarRefreshNeeded = True
 
                 elif self.info["analysisModeOn"]:
@@ -293,9 +198,9 @@ class App:
                             self.info["showMetrics"] = False
                             self.sideBarRefreshNeeded = True
 
-            elif event.type == pygame.MOUSEBUTTONDOWN and not self.info["isGameOver"]:
-                [mouseX, mouseY] = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONDOWN and not self.boardManager.isGameOver:
 
+                [mouseX, mouseY] = pygame.mouse.get_pos()
                 # convert mousePosition to tilePosition
                 tileX = int(mouseX / tileSize)
                 tileY = int(mouseY / tileSize)
@@ -311,23 +216,32 @@ class App:
                     self.info["mousex"] = tileX
                     self.info["mousey"] = tileY
 
-                    if self.info["player"] == 1 and self.board[tileY][tileX] == 1 or self.board[tileY][tileX] == 2:
-                        self.info["selected"] = (tileX, tileY)
-                        setPieceMoves(self.info)
+                    if self.boardManager.player == 1 and (self.boardManager.board[tileY][tileX] == 1 or self.boardManager.board[tileY][tileX] == 2):
+                        self.boardManager.selected = (tileX, tileY)
+                        self.boardManager.setPieceMoves()
 
-                    elif self.info["player"] == 2 and self.board[tileY][tileX] == 3 or self.board[tileY][tileX] == 4:
-                        self.info["selected"] = (tileX, tileY)
-                        setPieceMoves(self.info)
+                    elif self.boardManager.player == 2 and (self.boardManager.board[tileY][tileX] == 3 or self.boardManager.board[tileY][tileX] == 4):
+                        self.boardManager.selected = (tileX, tileY)
+                        self.boardManager.setPieceMoves()
 
-                    elif self.board[tileY][tileX] == 0:
+                    elif self.boardManager.board[tileY][tileX] == 0:
 
-                        move = getMove(self.info, tileX, tileY)
+                        move = self.boardManager.getMove(tileX, tileY)
 
                         if move is not None:
-                            self.makeMove(move)
+                            self.boardManager.makeMove(move)
                             self.gameBoardChanged = True
 
                     self.boardRefreshNeeded = True
+                    self.sideBarRefreshNeeded = True
+
+        if self.gameBoardChanged:
+            # check if game is over and if so, draw game over menu
+            self.boardManager.setGameStatus()
+
+            self.boardManager.allMoves = self.boardManager.game.get_possible_moves()
+            self.boardManager.pieceMoves = []
+            self.gameBoardChanged = False
 
     def drawBoard(self):
         # --- Drawing code should go here
@@ -366,26 +280,3 @@ class App:
 
             self.sideBarRefreshNeeded = False
             self.boardRefreshNeeded = False
-
-    def run(self):
-
-        while self.isRunning:
-
-            self.update()
-
-            if self.gameBoardChanged:
-
-                # check if game is over and if so, draw game over menu
-                self.setGameStatus()
-
-                self.info["allMoves"] = self.game.get_possible_moves()
-                self.info["pieceMoves"] = []
-                self.gameBoardChanged = False
-
-            self.draw()
-
-            # --- Limit to 60 frames per second
-            self.clock.tick(60)
-
-        # Once we have exited the main program loop we can stop the game engine:
-        pygame.quit()

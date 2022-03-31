@@ -4,7 +4,7 @@ class InfoAI:
     def __init__(self):
 
         self.debugOn = True
-        self.alphaBetaOn = False
+        self.alphaBetaOn = True
         self.moveSortingOn = False
         self.searchDepth = 5
 

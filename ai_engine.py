@@ -40,7 +40,11 @@ class AIEngine:
         alpha = -sys.maxsize
         beta = sys.maxsize
 
-        self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
+        # so that every functional call can rely on the fact that the parent
+        # has created a deep copy
+        newPosition = copy.deepcopy(position)
+
+        self.minimax(newPosition, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
         self.appInfo.analysisRunning = False
 
     # TODO: after basic search depth exceeded, look one step further to avoid immediate danger
@@ -60,7 +64,13 @@ class AIEngine:
 
             for moveSequence in moves:
 
-                newPosition = copy.deepcopy(position)
+                # we only need to copy if a move isn't a forcing line
+                # in that case, we create multiple 'parallel realities'
+                if len(moves) > 1:
+                    newPosition = copy.deepcopy(position)
+                else:
+                    newPosition = position
+
                 # apply whole FORCING move sequence
                 for pieceMove in moveSequence:
                     newPosition.move(pieceMove)
@@ -96,9 +106,13 @@ class AIEngine:
                 self.sortMoves(moves)
 
             for moveSequence in moves:
-                # apply whole FORCING move sequence
-                newPosition = copy.deepcopy(position)
 
+                if len(moves) > 1:
+                    newPosition = copy.deepcopy(position)
+                else:
+                    newPosition = position
+
+                # apply whole FORCING move sequence
                 for pieceMove in moveSequence:
                     newPosition.move(pieceMove)
 

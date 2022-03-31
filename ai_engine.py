@@ -4,7 +4,7 @@ import sys
 
 from helpers import getBlackPiecesFromFEN, getWhitePiecesFromFEN
 from info_ai import InfoAI
-from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER
+from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
 
 
 class AIEngine:
@@ -54,6 +54,9 @@ class AIEngine:
 
             moves = position.get_possible_moves()
 
+            if self.infoAI.moveSortingOn:
+                self.sortMoves(moves)
+
             for pieceMove in moves:
                 newPosition = copy.deepcopy(position)
                 newPosition.move(pieceMove)
@@ -70,8 +73,11 @@ class AIEngine:
 
                 # code for alpha-beta-pruning
                 alpha = max(alpha, newEvaluation)
+
+                # print(f"alpha: {alpha}, beta: {beta}")
+
                 if self.infoAI.alphaBetaOn and beta <= alpha:
-                    print("pruned")
+                    # print("pruned")
                     break
 
             return maxEvaluation
@@ -81,6 +87,9 @@ class AIEngine:
             minEvaluation = sys.maxsize
 
             moves = position.get_possible_moves()
+
+            if self.infoAI.moveSortingOn:
+                self.sortMoves(moves)
 
             for pieceMove in moves:
                 newPosition = copy.deepcopy(position)
@@ -98,8 +107,11 @@ class AIEngine:
 
                 # code for alpha-beta-pruning
                 beta = max(beta, newEvaluation)
+
+                # print(f"alpha: {alpha}, beta: {beta}")
+
                 if self.infoAI.alphaBetaOn and beta <= alpha:
-                    print("pruned")
+                    # print("pruned")
                     break
 
             return minEvaluation
@@ -123,6 +135,12 @@ class AIEngine:
 
             # ^3 to preserve sign but reward/punish strong imbalance
             return (numberOfWhitePieces - numberOfBlackPieces) ** 3
+
+    def sortMoves(self, moves):
+        # 1. promotions
+        # 2. captures
+        # 3. normal moves
+        pass
 
 
 

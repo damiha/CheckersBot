@@ -2,7 +2,7 @@ import copy
 import time
 import sys
 
-from helpers import getBlackPiecesFromFEN, getWhitePiecesFromFEN
+from helpers import getBlackPiecesFromFEN, getWhitePiecesFromFEN, getKeyFromPosition
 from info_ai import InfoAI
 from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
 
@@ -14,6 +14,9 @@ class AIEngine:
         self.infoAI = InfoAI()
         # get app info to receive commands
         self.appInfo = appInfo
+
+        # lru_cache doesn't work since treats calls too differently
+        self.cache = dict()
 
     def runTimer(self):
 
@@ -33,6 +36,7 @@ class AIEngine:
         self.infoAI.evaluatedPositions = 0
         self.infoAI.bestMoveSequence = None
         self.infoAI.estimation = None
+        self.cache = dict()
 
         # whose_turn() == 2 => white player
         isMaximizingPlayer = position.whose_turn() == 2
@@ -46,17 +50,25 @@ class AIEngine:
     # TODO: after basic search depth exceeded, look one step further to avoid immediate danger
     def minimax(self, position, isMaximizingPlayer, depth, alpha, beta):
 
-        if depth == 0 or not self.appInfo.analysisRunning or position.is_over():
-            return self.staticEvaluation(position)
+        key = getKeyFromPosition(position)
+
+        if self.infoAI.memoizationOn and (value := self.cache.get(key)) is not None:
+            return value
+
+        elif depth == 0 or not self.appInfo.analysisRunning or position.is_over():
+
+            evaluation = self.staticEvaluation(position)
+
+            if self.infoAI.memoizationOn:
+                self.cache[key] = evaluation
+
+            return evaluation
 
         if isMaximizingPlayer:
             # set to -Infinity
             maxEvaluation = -sys.maxsize
 
             moves, captures = position.legal_moves()
-
-            if self.infoAI.moveSortingOn:
-                self.sortMoves(moves)
 
             for moveSequence in moves:
 
@@ -66,8 +78,8 @@ class AIEngine:
                 for pieceMove in moveSequence:
                     newPosition.move(pieceMove)
 
-                newIsMaximizingPlayer = newPosition.whose_turn() == 2
-                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
+                # after moves have been applied, it's certainly other player's turn
+                newEvaluation = self.minimax(newPosition, not isMaximizingPlayer, depth - 1, alpha, beta)
 
                 if newEvaluation > maxEvaluation:
                     maxEvaluation = newEvaluation
@@ -93,9 +105,6 @@ class AIEngine:
 
             moves, captures = position.legal_moves()
 
-            if self.infoAI.moveSortingOn:
-                self.sortMoves(moves)
-
             for moveSequence in moves:
 
                 newPosition = copy.deepcopy(position)
@@ -104,8 +113,7 @@ class AIEngine:
                 for pieceMove in moveSequence:
                     newPosition.move(pieceMove)
 
-                newIsMaximizingPlayer = newPosition.whose_turn() == 2
-                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
+                newEvaluation = self.minimax(newPosition,  not isMaximizingPlayer, depth - 1, alpha, beta)
 
                 if newEvaluation < minEvaluation:
                     minEvaluation = newEvaluation
@@ -144,12 +152,6 @@ class AIEngine:
 
             # ^3 to preserve sign but reward/punish strong imbalance
             return (numberOfWhitePieces - numberOfBlackPieces) ** 3
-
-    def sortMoves(self, moves):
-        # 1. promotions
-        # 2. captures
-        # 3. normal moves
-        pass
 
 
 

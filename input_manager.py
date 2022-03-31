@@ -77,7 +77,7 @@ class InputManager:
             self.appInfo.sideBarRefreshNeeded = True
 
         elif event.key == pygame.K_2:
-            self.aiEngine.infoAI.moveSortingOn = not self.aiEngine.infoAI.moveSortingOn
+            self.aiEngine.infoAI.memoizationOn = not self.aiEngine.infoAI.memoizationOn
             self.appInfo.sideBarRefreshNeeded = True
 
     # TODO: when best move gets set, update sometimes gets lost (RACE CONDITION)

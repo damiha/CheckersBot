@@ -5,7 +5,7 @@ class InfoAI:
 
         self.debugOn = True
         self.alphaBetaOn = True
-        self.moveSortingOn = False
+        self.memoizationOn = False
         self.searchDepth = 5
 
         self.evaluatedPositions = 0

@@ -79,8 +79,8 @@ class DrawEngine:
             alphaBetaText = f"[1] alpha-beta-pruning: {self.infoAI.alphaBetaOn}"
             alphaBetaLabel = self.sideBarFont.render(alphaBetaText, True, WHITE)
 
-            moveSortingText = f"[2] sort moves: {self.infoAI.moveSortingOn}"
-            moveSortingLabel = self.sideBarFont.render(moveSortingText, True, WHITE)
+            memoizationText = f"[2] memoization: {self.infoAI.memoizationOn}"
+            memoizationLabel = self.sideBarFont.render(memoizationText, True, WHITE)
 
             enterText = f"[ENTER] to show/hide metrics"
             enterLabel = self.sideBarFont.render(enterText, True, WHITE)
@@ -93,7 +93,7 @@ class DrawEngine:
                 self.blankLabel,
                 searchDepthLabel,
                 alphaBetaLabel,
-                moveSortingLabel,
+                memoizationLabel,
                 self.blankLabel,
                 enterLabel,
                 leaveAnalysisLabel

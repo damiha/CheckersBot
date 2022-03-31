@@ -50,5 +50,9 @@ def getWhitePiecesFromFEN(fenString):
     return len(whiteFenString.split(","))
 
 
+def getKeyFromPosition(position):
+    return f"player: {position.whose_turn()}, {position.get_li_fen()}"
+
+
 def flatten(t):
     return [item for sublist in t for item in sublist]

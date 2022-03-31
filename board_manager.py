@@ -1,7 +1,7 @@
 from draughts import Game, WHITE as WHITE_PLAYER
 
 from constants import initial_board, tilesPerRow
-from helpers import draughtsToCoords, coordsToDraughts, getBlackPiecesFromFEN
+from helpers import draughtsToCoords, coordsToDraughts
 
 
 class BoardManager:

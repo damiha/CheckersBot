@@ -2,8 +2,8 @@ import copy
 import time
 import sys
 
-from constants import refreshTime
-from helpers import getBlackPiecesFromFEN, getWhitePiecesFromFEN, getKeyFromPosition
+from constants import refreshTime, valuePerMan, valuePerKing
+from helpers import getKeyFromPosition, getBlackCharactersFromFEN, getWhiteCharactersFromFEN, getNumberOfPiecesFromCharacters
 from info_ai import InfoAI
 from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
 
@@ -147,12 +147,20 @@ class AIEngine:
                 # draw
                 return 0
         else:
-            # TODO: weight men and king pieces differently
-            numberOfWhitePieces = getWhitePiecesFromFEN(position.get_li_fen())
-            numberOfBlackPieces = getBlackPiecesFromFEN(position.get_li_fen())
+            fenString = position.get_li_fen()
+            blackCharacters = getBlackCharactersFromFEN(fenString)
+            whiteCharacters = getWhiteCharactersFromFEN(fenString)
+
+            numberOfMenW, numberOfKingsW = getNumberOfPiecesFromCharacters(whiteCharacters)
+            numberOfMenB, numberOfKingsB = getNumberOfPiecesFromCharacters(blackCharacters)
+
+            # reward play in the center
 
             # ^3 to preserve sign but reward/punish strong imbalance
-            return (numberOfWhitePieces - numberOfBlackPieces) ** 3
+            pointsWhitePieces = numberOfMenW * valuePerMan + numberOfKingsW * valuePerKing
+            pointsBlackPieces = numberOfMenB * valuePerMan + numberOfKingsB * valuePerKing
+
+            return (pointsWhitePieces - pointsBlackPieces) ** 3
 
 
 

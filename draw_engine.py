@@ -118,6 +118,22 @@ class DrawEngine:
                 runText = f"[SPACE] to start/stop analysis"
                 runLabel = self.sideBarFont.render(runText, True, WHITE)
 
+                # couldn't fix display bug in an efficient manner
+                # last sideBarRefreshNeeded = True seems to get swallowed
+                bugHintText1 = f"Results might not be displayed."
+                bugHintLabel1 = self.sideBarFont.render(bugHintText1, True, WHITE)
+
+                bugHintText2 = f"Click on the board after the analysis!"
+                bugHintLabel2 = self.sideBarFont.render(bugHintText2, True, WHITE)
+
+                # TODO: make less ugly in next refactoring session
+                yellowBoxHeight = 50
+                yellowBoxY = 460
+                yellowBox = pygame.Surface((windowSize[0] - boardSize[0], yellowBoxHeight))
+                yellowBox.fill(YELLOW)
+                yellowBox.set_alpha(100)
+                self.sideBarSurface.blit(yellowBox, (5, yellowBoxY))
+
                 metricsLabels = [
                     self.barLabel,
                     self.blankLabel,
@@ -125,7 +141,10 @@ class DrawEngine:
                     runtimeLabel,
                     bestMoveLabel,
                     estimationLabel,
-                    runLabel
+                    runLabel,
+                    self.blankLabel,
+                    bugHintLabel1,
+                    bugHintLabel2
                 ]
 
                 self.drawLabels(metricsLabels, 15)

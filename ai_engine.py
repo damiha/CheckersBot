@@ -1,12 +1,11 @@
 import copy
 import time
-import sys
 
 from constants import refreshTime, valuePerMan, valuePerKing
 from helpers import getKeyFromPosition, getBlackCharactersFromFEN, getWhiteCharactersFromFEN, \
     getNumberOfPiecesFromCharacters, getRingDistributionFromCharacters, getPositionalPoints
 from info_ai import InfoAI
-from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
+from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER
 
 
 class AIEngine:

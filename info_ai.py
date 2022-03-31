@@ -3,7 +3,7 @@ class InfoAI:
 
     def __init__(self):
 
-        self.debugOn = True
+        self.debugOn = False
         self.alphaBetaOn = True
         self.memoizationOn = True
         self.searchDepth = 5

@@ -69,7 +69,7 @@ class App:
             self.boardManager.allMoveSequences = self.boardManager.game.legal_moves()[0]
             self.boardManager.allCaptureSequences = self.boardManager.game.legal_moves()[1]
 
-            print(self.boardManager.game.legal_moves())
+            # print(self.boardManager.game.legal_moves())
 
             self.boardManager.pieceMoves = []
             self.appInfo.gameBoardChanged = False

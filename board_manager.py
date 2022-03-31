@@ -16,8 +16,8 @@ class BoardManager:
         # info concerning game
         self.isGameOver = False
         self.whoWon = -1
-        # to track a capture sequence
-        self.capturedPieces = []
+
+        self.trackedPiecesForDrawing = []
         self.player = 1
 
         self.blackPiecesCaptured = 0
@@ -26,10 +26,8 @@ class BoardManager:
         self.moveHistory = []
 
         self.allMoveSequences = []
-        self.allCaptureSequences = []
-
-        # the selected piece has to perform this sequence
-        self.chosenMoveSequence = []
+        # the selected piece has to perform any of these longest sequence
+        self.forcedMoveSequences = []
         # first moves available to a piece
         self.pieceMoves = []
 
@@ -47,7 +45,7 @@ class BoardManager:
         self.isGameOver = False
         self.whoWon = -1
         # to track a capture sequence
-        self.capturedPieces = []
+        self.trackedPiecesForDrawing = []
         self.player = 1
 
         self.blackPiecesCaptured = 0
@@ -56,7 +54,8 @@ class BoardManager:
         self.moveHistory = []
 
         self.allMoveSequences = []
-        self.chosenMoveSequence = []
+        self.forcedMoveSequences = []
+        self.pieceMoves = []
 
         self.selected = (-1, -1)
 
@@ -95,7 +94,7 @@ class BoardManager:
         if isCapture:
             # set as captured but don't remove piece from board immediately
             self.board[capturedY][capturedX] = -1
-            self.capturedPieces.append((capturedX, capturedY))
+            self.trackedPiecesForDrawing.append((capturedX, capturedY))
 
             if self.player == 1:
                 self.blackPiecesCaptured += 1
@@ -112,10 +111,15 @@ class BoardManager:
         # move ends players turn, realize promotions and captures
         if nextPlayer != thisPlayer:
 
-            for (capturedX, capturedY) in self.capturedPieces:
+            for (capturedX, capturedY) in self.trackedPiecesForDrawing:
                 self.board[capturedY][capturedX] = 0
 
-            self.capturedPieces = []
+            self.trackedPiecesForDrawing = []
+
+            # reset capture sequences
+            self.allMoveSequences = []
+            self.forcedMoveSequences = []
+            self.pieceMoves = []
 
             if isPromotionMove:
                 self.board[toY][toX] += 1
@@ -129,7 +133,7 @@ class BoardManager:
         pieceMoves = []
 
         # piece doesn't have to perform a multi capture
-        if len(self.chosenMoveSequence) == 0:
+        if len(self.forcedMoveSequences) == 0:
             # add all first moves of all capture sequences of a piece
             for moveSequence in self.allMoveSequences:
                 firstMove = moveSequence[0]
@@ -139,13 +143,13 @@ class BoardManager:
 
         else:
             # piece has to perform a multi capture so add the first move of remaining sequence
-            firstMove = self.chosenMoveSequence[0]
+            for forcedMoveSequence in self.forcedMoveSequences:
+                firstMove = forcedMoveSequence[0]
 
-            if firstMove[0] == fromPos:
-                pieceMoves.append(firstMove)
+                if firstMove[0] == fromPos:
+                    pieceMoves.append(firstMove)
 
         self.pieceMoves = pieceMoves
-        print(self.pieceMoves)
 
     def getMove(self, toX, toY):
 
@@ -153,22 +157,49 @@ class BoardManager:
         toPos = coordsToDraughts(toX, toY)
 
         # no chosenMoveSequence ?
-        if len(self.chosenMoveSequence) == 0:
+        if len(self.forcedMoveSequences) == 0:
+
+            foundMove = False
 
             for moveSequence in self.allMoveSequences:
                 firstMove = moveSequence[0]
 
                 # making a move means choosing a move sequence
                 if firstMove == [fromPos, toPos]:
-                    # first move is played, so set to next
-                    self.chosenMoveSequence = moveSequence[1:]
-                    return firstMove
-        else:
-            firstMove = self.chosenMoveSequence[0]
 
-            if firstMove == [fromPos, toPos]:
-                # remove first move and return it
-                return self.chosenMoveSequence.pop(0)
+                    foundMove = True
+
+                    # first move is played, so set to next
+                    if len(moveSequence) > 1:
+                        # append since forcedMoveSequence hasn't been saved yet
+                        self.forcedMoveSequences.append(moveSequence[1:])
+
+            # print(self.forcedMoveSequences)
+
+            if foundMove:
+                return [fromPos, toPos]
+
+        else:
+
+            foundMove = False
+
+            for forcedMoveSequence in self.forcedMoveSequences:
+                firstMove = forcedMoveSequence[0]
+
+                if firstMove == [fromPos, toPos]:
+                    foundMove = True
+
+                    # remove first move
+                    forcedMoveSequence.pop(0)
+
+                    # empty lists are forbidden
+                    if len(forcedMoveSequence) == 0:
+                        self.forcedMoveSequences.remove(forcedMoveSequence)
+
+            # print(self.forcedMoveSequences)
+
+            if foundMove:
+                return [fromPos, toPos]
 
         return None
 

@@ -59,16 +59,16 @@ class InputManager:
             # you can't change the parameters when the analysis is about to run
             if not self.appInfo.showMetrics:
                 if event.key == pygame.K_PLUS:
-                    self.aiEngine.infoAI["searchDepth"] += 1
+                    self.aiEngine.infoAI.searchDepth += 1
 
                 elif event.key == pygame.K_MINUS:
-                    self.aiEngine.infoAI["searchDepth"] -= 1 if self.aiEngine.infoAI["searchDepth"] > 1 else 0
+                    self.aiEngine.infoAI.searchDepth -= 1 if self.aiEngine.infoAI.searchDepth > 1 else 0
 
                 elif event.key == pygame.K_1:
-                    self.aiEngine.infoAI["alphaBetaOn"] = not self.aiEngine.infoAI["alphaBetaOn"]
+                    self.aiEngine.infoAI.alphaBetaOn = not self.aiEngine.infoAI.alphaBetaOn
 
                 elif event.key == pygame.K_2:
-                    self.aiEngine.infoAI["moveSortingOn"] = not self.aiEngine.infoAI["moveSortingOn"]
+                    self.aiEngine.infoAI.moveSortingOn = not self.aiEngine.infoAI.moveSortingOn
 
                 elif event.key == pygame.K_RETURN:
                     self.appInfo.showMetrics = True

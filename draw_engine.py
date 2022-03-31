@@ -73,13 +73,13 @@ class DrawEngine:
 
         if self.appInfo.analysisModeOn:
 
-            searchDepthText = f"[+/-] search-depth: {self.infoAI['searchDepth']}"
+            searchDepthText = f"[+/-] search-depth: {self.infoAI.searchDepth}"
             searchDepthLabel = self.sideBarFont.render(searchDepthText, True, WHITE)
 
-            alphaBetaText = f"[1] alpha-beta-pruning: {self.infoAI['alphaBetaOn']}"
+            alphaBetaText = f"[1] alpha-beta-pruning: {self.infoAI.alphaBetaOn}"
             alphaBetaLabel = self.sideBarFont.render(alphaBetaText, True, WHITE)
 
-            moveSortingText = f"[2] sort moves: {self.infoAI['moveSortingOn']}"
+            moveSortingText = f"[2] sort moves: {self.infoAI.moveSortingOn}"
             moveSortingLabel = self.sideBarFont.render(moveSortingText, True, WHITE)
 
             enterText = f"[ENTER] to show/hide metrics"
@@ -103,16 +103,16 @@ class DrawEngine:
 
             if self.appInfo.showMetrics:
 
-                evaluatedText = f"evaluated positions: {self.infoAI['evaluatedPositions']}"
+                evaluatedText = f"evaluated positions: {self.infoAI.evaluatedPositions}"
                 evaluatedLabel = self.sideBarFont.render(evaluatedText, True, WHITE)
 
-                runtimeText = f"runtime: {self.infoAI['runtime']}"
+                runtimeText = f"runtime: {self.infoAI.runtime}"
                 runtimeLabel = self.sideBarFont.render(runtimeText, True, WHITE)
 
-                bestMoveText = f"best move: {self.infoAI['bestMove']}"
+                bestMoveText = f"best move: {self.infoAI.bestMove}"
                 bestMoveLabel = self.sideBarFont.render(bestMoveText, True, WHITE)
 
-                estimationText = f"estimation: {self.infoAI['estimation']}"
+                estimationText = f"estimation: {self.infoAI.estimation}"
                 estimationLabel = self.sideBarFont.render(estimationText, True, WHITE)
 
                 runText = f"[SPACE] to start/stop analysis"

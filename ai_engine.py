@@ -36,11 +36,14 @@ class AIEngine:
         # whose_turn() == 2 => white player
         isMaximizingPlayer = position.whose_turn() == 2
 
-        self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth)
+        alpha = -sys.maxsize
+        beta = sys.maxsize
+
+        self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
         self.appInfo.analysisRunning = False
 
     # TODO: after basic search depth exceeded, look one step further to avoid immediate danger
-    def minimax(self, position, isMaximizingPlayer, depth):
+    def minimax(self, position, isMaximizingPlayer, depth, alpha, beta):
 
         if depth == 0 or not self.appInfo.analysisRunning or position.is_over():
             return self.staticEvaluation(position)
@@ -56,7 +59,7 @@ class AIEngine:
                 newPosition.move(pieceMove)
 
                 newIsMaximizingPlayer = newPosition.whose_turn() == 2
-                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1)
+                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
 
                 if newEvaluation > maxEvaluation:
                     maxEvaluation = newEvaluation
@@ -64,6 +67,12 @@ class AIEngine:
                     if depth == self.infoAI.searchDepth:
                         self.infoAI.bestMove = pieceMove
                         self.infoAI.estimation = maxEvaluation
+
+                # code for alpha-beta-pruning
+                alpha = max(alpha, newEvaluation)
+                if self.infoAI.alphaBetaOn and beta <= alpha:
+                    print("pruned")
+                    break
 
             return maxEvaluation
 
@@ -78,7 +87,7 @@ class AIEngine:
                 newPosition.move(pieceMove)
 
                 newIsMaximizingPlayer = newPosition.whose_turn() == 2
-                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1)
+                newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
 
                 if newEvaluation < minEvaluation:
                     minEvaluation = newEvaluation
@@ -86,6 +95,12 @@ class AIEngine:
                     if depth == self.infoAI.searchDepth:
                         self.infoAI.bestMove = pieceMove
                         self.infoAI.estimation = minEvaluation
+
+                # code for alpha-beta-pruning
+                beta = max(beta, newEvaluation)
+                if self.infoAI.alphaBetaOn and beta <= alpha:
+                    print("pruned")
+                    break
 
             return minEvaluation
 

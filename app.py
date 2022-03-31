@@ -57,10 +57,10 @@ class App:
                     self.threadManager.joinThreads()
 
             elif event.type == pygame.KEYDOWN:
-                self.inputManager.manageKeyEvent(event)
+                self.inputManager.handleKeyEvent(event)
 
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.boardManager.isGameOver:
-                self.inputManager.manageMouseEvent()
+                self.inputManager.handleMouseEvent()
 
         if self.appInfo.gameBoardChanged:
             # check if game is over and if so, draw game over menu

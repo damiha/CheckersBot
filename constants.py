@@ -56,8 +56,9 @@ initial_board = [
     [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
 ]
 
-# 0.01 = 10ms
-refreshTime = 0.01
+# 0.05 = 50ms
+# when analysis is running
+refreshTime = 0.05
 
 # weights for heuristic function
 valuePerMan = 1.0

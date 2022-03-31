@@ -46,7 +46,7 @@ class AIEngine:
         alpha = float("-inf")
         beta = float("inf")
 
-        self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
+        self.infoAI.estimation = self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
         self.appInfo.analysisRunning = False
 
     # TODO: after basic search depth exceeded, look one step further to avoid immediate danger
@@ -83,16 +83,16 @@ class AIEngine:
                 # after moves have been applied, it's certainly other player's turn
                 newEvaluation = self.minimax(newPosition, not isMaximizingPlayer, depth - 1, alpha, beta)
 
+                # from this position, white can force a win so don't even consider other moves
+                if newEvaluation == float("inf"):
+
+                    self.updateStatsIfTopLevel(depth, maxEvaluation, moveSequence)
+                    return float("inf")
+
                 if newEvaluation > maxEvaluation:
+
                     maxEvaluation = newEvaluation
-
-                    if depth == self.infoAI.searchDepth:
-                        self.infoAI.bestMoveSequence = moveSequence
-                        self.infoAI.estimation = maxEvaluation
-
-                        if self.infoAI.debugOn:
-                            print(self.infoAI.bestMoveSequence)
-                            print(self.infoAI.estimation)
+                    self.updateStatsIfTopLevel(depth, maxEvaluation, moveSequence)
 
                 # code for alpha-beta-pruning
                 alpha = max(alpha, newEvaluation)
@@ -115,18 +115,18 @@ class AIEngine:
                 for pieceMove in moveSequence:
                     newPosition.move(pieceMove)
 
-                newEvaluation = self.minimax(newPosition,  not isMaximizingPlayer, depth - 1, alpha, beta)
+                newEvaluation = self.minimax(newPosition, not isMaximizingPlayer, depth - 1, alpha, beta)
+
+                # from this position, black can force a win so don't even consider other moves
+                if newEvaluation == float("-inf"):
+
+                    self.updateStatsIfTopLevel(depth, minEvaluation, moveSequence)
+                    return float("-inf")
 
                 if newEvaluation < minEvaluation:
+
                     minEvaluation = newEvaluation
-
-                    if depth == self.infoAI.searchDepth:
-                        self.infoAI.bestMoveSequence = moveSequence
-                        self.infoAI.estimation = minEvaluation
-
-                        if self.infoAI.debugOn:
-                            print(self.infoAI.bestMoveSequence)
-                            print(self.infoAI.estimation)
+                    self.updateStatsIfTopLevel(depth, minEvaluation, moveSequence)
 
                 # code for alpha-beta-pruning
                 beta = min(beta, newEvaluation)
@@ -134,6 +134,15 @@ class AIEngine:
                     break
 
             return minEvaluation
+
+    def updateStatsIfTopLevel(self, depth, bestEvaluation, bestMoveSequence):
+        if depth == self.infoAI.searchDepth:
+            self.infoAI.bestMoveSequence = bestMoveSequence
+            self.infoAI.estimation = bestEvaluation
+
+            if self.infoAI.debugOn:
+                print(self.infoAI.bestMoveSequence)
+                print(self.infoAI.estimation)
 
     # TODO: come up with a decent static evaluation
     def staticEvaluation(self, position):

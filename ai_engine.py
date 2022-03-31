@@ -2,6 +2,7 @@ import copy
 import time
 import sys
 
+from constants import refreshTime
 from helpers import getBlackPiecesFromFEN, getWhitePiecesFromFEN, getKeyFromPosition
 from info_ai import InfoAI
 from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
@@ -28,7 +29,7 @@ class AIEngine:
             self.infoAI.runtime = round(endTime - startTime, 2)
 
             # sleep to prevent time measuring from becoming a performance drainer
-            time.sleep(0.01)
+            time.sleep(refreshTime)
 
     def runMinimax(self, position):
 

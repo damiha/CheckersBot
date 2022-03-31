@@ -2,6 +2,8 @@
 import time
 import threading
 
+from constants import refreshTime
+
 
 class ThreadManager:
 
@@ -19,7 +21,7 @@ class ThreadManager:
 
         while self.appInfo.analysisRunning:
             self.appInfo.sideBarRefreshNeeded = True
-            time.sleep(0.01)
+            time.sleep(refreshTime)
 
     def startThreads(self):
 

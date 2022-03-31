@@ -25,7 +25,12 @@ class BoardManager:
 
         self.moveHistory = []
 
-        self.allMoves = []
+        self.allMoveSequences = []
+        self.allCaptureSequences = []
+
+        # the selected piece has to perform this sequence
+        self.chosenMoveSequence = []
+        # first moves available to a piece
         self.pieceMoves = []
 
         self.selected = (-1, -1)
@@ -50,8 +55,8 @@ class BoardManager:
 
         self.moveHistory = []
 
-        self.allMoves = []
-        self.pieceMoves = []
+        self.allMoveSequences = []
+        self.chosenMoveSequence = []
 
         self.selected = (-1, -1)
 
@@ -70,8 +75,10 @@ class BoardManager:
             else:
                 self.whoWon = 1 if self.game.has_player_won(WHITE_PLAYER) else 2
 
-    def makeMove(self, move):
+    # move = [from, to] in draughts notation
+    # piece = at in draughts notation
 
+    def makeMove(self, move):
         # use (now) old board position to determine if a promotion occurred
         # promotion moves are last moves, nothing happens when you get to the promotion square and jump away afterwards
         isPromotionMove = self.isPromotion(move)
@@ -121,21 +128,48 @@ class BoardManager:
         fromPos = coordsToDraughts(x, y)
         pieceMoves = []
 
-        for move in self.allMoves:
+        # piece doesn't have to perform a multi capture
+        if len(self.chosenMoveSequence) == 0:
+            # add all first moves of all capture sequences of a piece
+            for moveSequence in self.allMoveSequences:
+                firstMove = moveSequence[0]
 
-            fromPosMove, toPosMove = move
+                if firstMove[0] == fromPos:
+                    pieceMoves.append(firstMove)
 
-            if fromPos == fromPosMove:
-                pieceMoves.append(move)
+        else:
+            # piece has to perform a multi capture so add the first move of remaining sequence
+            firstMove = self.chosenMoveSequence[0]
+
+            if firstMove[0] == fromPos:
+                pieceMoves.append(firstMove)
 
         self.pieceMoves = pieceMoves
+        print(self.pieceMoves)
 
     def getMove(self, toX, toY):
+
+        fromPos = coordsToDraughts(self.selected[0], self.selected[1])
         toPos = coordsToDraughts(toX, toY)
 
-        for move in self.pieceMoves:
-            if move[1] == toPos:
-                return move
+        # no chosenMoveSequence ?
+        if len(self.chosenMoveSequence) == 0:
+
+            for moveSequence in self.allMoveSequences:
+                firstMove = moveSequence[0]
+
+                # making a move means choosing a move sequence
+                if firstMove == [fromPos, toPos]:
+                    # first move is played, so set to next
+                    self.chosenMoveSequence = moveSequence[1:]
+                    return firstMove
+        else:
+            firstMove = self.chosenMoveSequence[0]
+
+            if firstMove == [fromPos, toPos]:
+                # remove first move and return it
+                return self.chosenMoveSequence.pop(0)
+
         return None
 
     def getPositionOfCapturedPiece(self, move):
@@ -168,3 +202,4 @@ class BoardManager:
 
         return (self.board[fromY][fromX] == 1 and toY == 0) or \
                (self.board[fromY][fromX] == 3 and toY == (tilesPerRow - 1))
+

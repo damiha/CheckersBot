@@ -48,3 +48,7 @@ def getWhitePiecesFromFEN(fenString):
     whiteFenString = colStrings[1]
 
     return len(whiteFenString.split(","))
+
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]

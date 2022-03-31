@@ -66,7 +66,11 @@ class App:
             # check if game is over and if so, draw game over menu
             self.boardManager.setGameStatus()
 
-            self.boardManager.allMoves = self.boardManager.game.get_possible_moves()
+            self.boardManager.allMoveSequences = self.boardManager.game.legal_moves()[0]
+            self.boardManager.allCaptureSequences = self.boardManager.game.legal_moves()[1]
+
+            print(self.boardManager.game.legal_moves())
+
             self.boardManager.pieceMoves = []
             self.appInfo.gameBoardChanged = False
 

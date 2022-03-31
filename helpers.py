@@ -1,6 +1,8 @@
 
 # works
-from constants import tilesPerRow
+from math import floor
+
+from constants import tilesPerRow, boardCenter, lossPerRing
 
 
 def outOfBounds(x, y):
@@ -46,7 +48,7 @@ def getNumberOfPiecesFromCharacters(characters):
         else:
             numberOfMen += 1
 
-    return numberOfMen, numberOfKings
+    return float(numberOfMen), float(numberOfKings)
 
 
 def getBlackCharactersFromFEN(fenString):
@@ -64,7 +66,35 @@ def getWhiteCharactersFromFEN(fenString):
 
 
 def getRingDistributionFromCharacters(characters):
-    pass
+
+    ringDistribution = [0, 0, 0, 0, 0]
+
+    for character in characters:
+        if character[0] == 'K':
+            x, y = draughtsToCoords(int(character[1:]))
+        else:
+            x, y = draughtsToCoords(int(character))
+
+        # calculate closed distance to center
+        xDiff = floor(abs(x - boardCenter))
+        yDiff = floor(abs(y - boardCenter))
+
+        # max norm describes ring
+        ring = max(xDiff, yDiff)
+        ringDistribution[ring] += 1
+
+    return ringDistribution
+
+
+def getPositionalPoints(ringDistribution):
+
+    positionalPoints = 0.0
+
+    for i in range(len(ringDistribution)):
+        # every piece in the center gets +1 and rewards decrease with the outer rings
+        positionalPoints += (1 - i * lossPerRing) * ringDistribution[i]
+
+    return positionalPoints
 
 
 def getKeyFromPosition(position):

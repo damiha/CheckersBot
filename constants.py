@@ -60,10 +60,13 @@ initial_board = [
 refreshTime = 0.01
 
 # weights for heuristic function
-valuePerMan = 1
-valuePerKing = 3
+valuePerMan = 1.0
+valuePerKing = 5.0
 
 # board is divided into five rings (2x2 center is ring 1 etc)
 # center ring: +1 for each piece, second ring: 0.8
 
 lossPerRing = 0.2
+
+# center of board to calculate manhatten distance
+boardCenter = 4.5

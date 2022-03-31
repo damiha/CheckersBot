@@ -112,7 +112,7 @@ class DrawEngine:
                 bestMoveText = f"best move: {self.infoAI.bestMoveSequence}"
                 bestMoveLabel = self.sideBarFont.render(bestMoveText, True, WHITE)
 
-                estimationText = f"estimation: {self.infoAI.estimation}"
+                estimationText = f"estimation: {self.infoAI.estimation : 0.2f}" if self.infoAI.estimation is not None else "estimation: None"
                 estimationLabel = self.sideBarFont.render(estimationText, True, WHITE)
 
                 runText = f"[SPACE] to start/stop analysis"

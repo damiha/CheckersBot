@@ -13,6 +13,6 @@ class InfoAI:
         self.runtime = 0.0
         self.bestMoveSequence = None
         # 0 => neither is better, + => white is winning, - => black is winning
-        self.estimation = 0
+        self.estimation = 0.0
 
 

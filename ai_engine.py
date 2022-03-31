@@ -3,7 +3,8 @@ import time
 import sys
 
 from constants import refreshTime, valuePerMan, valuePerKing
-from helpers import getKeyFromPosition, getBlackCharactersFromFEN, getWhiteCharactersFromFEN, getNumberOfPiecesFromCharacters
+from helpers import getKeyFromPosition, getBlackCharactersFromFEN, getWhiteCharactersFromFEN, \
+    getNumberOfPiecesFromCharacters, getRingDistributionFromCharacters, getPositionalPoints
 from info_ai import InfoAI
 from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER, Move
 
@@ -42,8 +43,8 @@ class AIEngine:
         # whose_turn() == 2 => white player
         isMaximizingPlayer = position.whose_turn() == 2
 
-        alpha = -sys.maxsize
-        beta = sys.maxsize
+        alpha = float("-inf")
+        beta = float("inf")
 
         self.minimax(position, isMaximizingPlayer, self.infoAI.searchDepth, alpha, beta)
         self.appInfo.analysisRunning = False
@@ -66,8 +67,8 @@ class AIEngine:
             return evaluation
 
         if isMaximizingPlayer:
-            # set to -Infinity
-            maxEvaluation = -sys.maxsize
+
+            maxEvaluation = float("-inf")
 
             moves, captures = position.legal_moves()
 
@@ -101,8 +102,8 @@ class AIEngine:
             return maxEvaluation
 
         else:
-            # set to +Infinity
-            minEvaluation = sys.maxsize
+
+            minEvaluation = float("inf")
 
             moves, captures = position.legal_moves()
 
@@ -140,12 +141,12 @@ class AIEngine:
 
         if position.is_over():
             if position.has_player_won(WHITE_PLAYER):
-                return sys.maxsize
+                return float("inf")
             elif position.has_player_won(BLACK_PLAYER):
-                return -sys.maxsize
+                return float("-inf")
             else:
                 # draw
-                return 0
+                return 0.0
         else:
             fenString = position.get_li_fen()
             blackCharacters = getBlackCharactersFromFEN(fenString)
@@ -154,16 +155,15 @@ class AIEngine:
             numberOfMenW, numberOfKingsW = getNumberOfPiecesFromCharacters(whiteCharacters)
             numberOfMenB, numberOfKingsB = getNumberOfPiecesFromCharacters(blackCharacters)
 
+            ringDistributionWhite = getRingDistributionFromCharacters(whiteCharacters)
+            ringDistributionBlack = getRingDistributionFromCharacters(blackCharacters)
+
             # reward play in the center
+            positionalPointsWhite = getPositionalPoints(ringDistributionWhite)
+            positionalPointsBlack = getPositionalPoints(ringDistributionBlack)
 
             # ^3 to preserve sign but reward/punish strong imbalance
-            pointsWhitePieces = numberOfMenW * valuePerMan + numberOfKingsW * valuePerKing
-            pointsBlackPieces = numberOfMenB * valuePerMan + numberOfKingsB * valuePerKing
+            pointsWhite = numberOfMenW * valuePerMan + numberOfKingsW * valuePerKing + positionalPointsWhite
+            pointsBlack = numberOfMenB * valuePerMan + numberOfKingsB * valuePerKing + positionalPointsBlack
 
-            return (pointsWhitePieces - pointsBlackPieces) ** 3
-
-
-
-
-
-
+            return (pointsWhite - pointsBlack) ** 3

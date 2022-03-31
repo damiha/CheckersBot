@@ -80,6 +80,7 @@ class InputManager:
             self.aiEngine.infoAI.moveSortingOn = not self.aiEngine.infoAI.moveSortingOn
             self.appInfo.sideBarRefreshNeeded = True
 
+    # TODO: when best move gets set, update sometimes gets lost (RACE CONDITION)
     def startAndStopAnalysis(self):
 
         if not self.appInfo.analysisRunning:

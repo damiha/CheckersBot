@@ -109,7 +109,7 @@ class DrawEngine:
                 runtimeText = f"runtime: {self.infoAI.runtime}"
                 runtimeLabel = self.sideBarFont.render(runtimeText, True, WHITE)
 
-                bestMoveText = f"best move: {self.infoAI.bestMove}"
+                bestMoveText = f"best move: {self.infoAI.bestMoveSequence}"
                 bestMoveLabel = self.sideBarFont.render(bestMoveText, True, WHITE)
 
                 estimationText = f"estimation: {self.infoAI.estimation}"

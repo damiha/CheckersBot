@@ -31,7 +31,8 @@ class AIEngine:
 
         # reset before running
         self.infoAI.evaluatedPositions = 0
-        self.infoAI.estimation = 0
+        self.infoAI.bestMoveSequence = None
+        self.infoAI.estimation = None
 
         # whose_turn() == 2 => white player
         isMaximizingPlayer = position.whose_turn() == 2
@@ -52,14 +53,17 @@ class AIEngine:
             # set to -Infinity
             maxEvaluation = -sys.maxsize
 
-            moves = position.get_possible_moves()
+            moves, captures = position.legal_moves()
 
             if self.infoAI.moveSortingOn:
                 self.sortMoves(moves)
 
-            for pieceMove in moves:
+            for moveSequence in moves:
+
                 newPosition = copy.deepcopy(position)
-                newPosition.move(pieceMove)
+                # apply whole FORCING move sequence
+                for pieceMove in moveSequence:
+                    newPosition.move(pieceMove)
 
                 newIsMaximizingPlayer = newPosition.whose_turn() == 2
                 newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
@@ -68,16 +72,16 @@ class AIEngine:
                     maxEvaluation = newEvaluation
 
                     if depth == self.infoAI.searchDepth:
-                        self.infoAI.bestMove = pieceMove
+                        self.infoAI.bestMoveSequence = moveSequence
                         self.infoAI.estimation = maxEvaluation
+
+                        if self.infoAI.debugOn:
+                            print(self.infoAI.bestMoveSequence)
+                            print(self.infoAI.estimation)
 
                 # code for alpha-beta-pruning
                 alpha = max(alpha, newEvaluation)
-
-                # print(f"alpha: {alpha}, beta: {beta}")
-
                 if self.infoAI.alphaBetaOn and beta <= alpha:
-                    # print("pruned")
                     break
 
             return maxEvaluation
@@ -86,14 +90,17 @@ class AIEngine:
             # set to +Infinity
             minEvaluation = sys.maxsize
 
-            moves = position.get_possible_moves()
+            moves, captures = position.legal_moves()
 
             if self.infoAI.moveSortingOn:
                 self.sortMoves(moves)
 
-            for pieceMove in moves:
+            for moveSequence in moves:
+                # apply whole FORCING move sequence
                 newPosition = copy.deepcopy(position)
-                newPosition.move(pieceMove)
+
+                for pieceMove in moveSequence:
+                    newPosition.move(pieceMove)
 
                 newIsMaximizingPlayer = newPosition.whose_turn() == 2
                 newEvaluation = self.minimax(newPosition, newIsMaximizingPlayer, depth - 1, alpha, beta)
@@ -102,16 +109,16 @@ class AIEngine:
                     minEvaluation = newEvaluation
 
                     if depth == self.infoAI.searchDepth:
-                        self.infoAI.bestMove = pieceMove
+                        self.infoAI.bestMoveSequence = moveSequence
                         self.infoAI.estimation = minEvaluation
 
+                        if self.infoAI.debugOn:
+                            print(self.infoAI.bestMoveSequence)
+                            print(self.infoAI.estimation)
+
                 # code for alpha-beta-pruning
-                beta = max(beta, newEvaluation)
-
-                # print(f"alpha: {alpha}, beta: {beta}")
-
+                beta = min(beta, newEvaluation)
                 if self.infoAI.alphaBetaOn and beta <= alpha:
-                    # print("pruned")
                     break
 
             return minEvaluation

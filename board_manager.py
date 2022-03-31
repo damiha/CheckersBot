@@ -174,8 +174,6 @@ class BoardManager:
                         # append since forcedMoveSequence hasn't been saved yet
                         self.forcedMoveSequences.append(moveSequence[1:])
 
-            # print(self.forcedMoveSequences)
-
             if foundMove:
                 return [fromPos, toPos]
 
@@ -195,8 +193,6 @@ class BoardManager:
                     # empty lists are forbidden
                     if len(forcedMoveSequence) == 0:
                         self.forcedMoveSequences.remove(forcedMoveSequence)
-
-            # print(self.forcedMoveSequences)
 
             if foundMove:
                 return [fromPos, toPos]

@@ -54,9 +54,7 @@ class InputManager:
             else:
                 # showMetrics = true
                 if event.key == pygame.K_SPACE:
-
                     self.startAndStopAnalysis()
-                    self.appInfo.sideBarRefreshNeeded = True
 
                 # you can only disable the metrics when the analysis is not running
                 # that way you avoid threads that run silently in the background
@@ -88,11 +86,11 @@ class InputManager:
 
             self.appInfo.analysisRunning = True
             self.threadManager.startThreads()
-
+            # no refresh needed here since refresher thread gets started
         else:
-
             self.appInfo.analysisRunning = False
             self.threadManager.joinThreads()
+            self.appInfo.sideBarRefreshNeeded = True
 
     def openFilePromptAndSave(self):
 

@@ -32,7 +32,7 @@ class App:
 
         self.boardManager = BoardManager()
         self.fileManager = FileManager(self.boardManager)
-        self.threadManager = ThreadManager(self.appInfo, self.aiEngine)
+        self.threadManager = ThreadManager(self.appInfo, self.boardManager, self.aiEngine)
         self.inputManager = InputManager(self.appInfo, self.aiEngine, self.fileManager, self.boardManager, self.threadManager)
 
         # The clock will be used to control how fast the screen updates

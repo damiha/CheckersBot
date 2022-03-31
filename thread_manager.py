@@ -5,10 +5,11 @@ import threading
 
 class ThreadManager:
 
-    def __init__(self, appInfo, aiEngine):
+    def __init__(self, appInfo, boardManager, aiEngine):
 
         self.appInfo = appInfo
         self.aiEngine = aiEngine
+        self.boardManager = boardManager
 
         self.refreshThread = None
         self.timerThread = None
@@ -24,7 +25,7 @@ class ThreadManager:
 
         self.refreshThread = threading.Thread(target=self.refreshSideBarPeriodically)
         self.timerThread = threading.Thread(target=self.aiEngine.runTimer)
-        self.minimaxThread = threading.Thread(target=self.aiEngine.runMinimax)
+        self.minimaxThread = threading.Thread(target=self.aiEngine.runMinimax, args=[self.boardManager.game])
 
         self.refreshThread.start()
         self.timerThread.start()

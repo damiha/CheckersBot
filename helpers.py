@@ -11,7 +11,6 @@ def outOfBounds(x, y):
 
 def draughtsToCoords(tileNumber):
     y = int((tileNumber - 1) / 5)
-    x = -1
 
     if y % 2 == 1:
         x = 2 * ((tileNumber - 1) % 5)
@@ -24,7 +23,6 @@ def draughtsToCoords(tileNumber):
 # works
 def coordsToDraughts(x, y):
     offsetTroughRow = y * 5
-    offsetThroughCol = -1
 
     if y % 2 == 0:
         offsetThroughCol = int((x + 1) / 2)
@@ -95,11 +93,3 @@ def getPositionalPoints(ringDistribution):
         positionalPoints += (1 - i * lossPerRing) * ringDistribution[i]
 
     return positionalPoints
-
-
-def getKeyFromPosition(position):
-    return f"player: {position.whose_turn()}, {position.get_li_fen()}"
-
-
-def flatten(t):
-    return [item for sublist in t for item in sublist]

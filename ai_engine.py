@@ -1,4 +1,3 @@
-import copy
 import time
 
 from constants import refreshTime, valuePerMan, valuePerKing
@@ -73,7 +72,7 @@ class AIEngine:
 
             for moveSequence in moves:
 
-                newPosition = copy.deepcopy(position)
+                newPosition = position.copy_fast()
 
                 # apply whole FORCING move sequence
                 for pieceMove in moveSequence:
@@ -108,7 +107,7 @@ class AIEngine:
 
             for moveSequence in moves:
 
-                newPosition = copy.deepcopy(position)
+                newPosition = position.copy_fast()
 
                 # apply whole FORCING move sequence
                 for pieceMove in moveSequence:

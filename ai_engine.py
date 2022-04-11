@@ -1,8 +1,8 @@
 import time
 
 from constants import refreshTime, valuePerMan, valuePerKing
-from helpers import getKeyFromPosition, getBlackCharactersFromFEN, getWhiteCharactersFromFEN, \
-    getNumberOfPiecesFromCharacters, getRingDistributionFromCharacters, getPositionalPoints
+from helpers import getBlackCharactersFromFEN, getWhiteCharactersFromFEN, getNumberOfPiecesFromCharacters, \
+    getRingDistributionFromCharacters, getPositionalPoints
 from info_ai import InfoAI
 from draughts import WHITE as WHITE_PLAYER, BLACK as BLACK_PLAYER
 
@@ -50,7 +50,7 @@ class AIEngine:
     # TODO: after basic search depth exceeded, look one step further to avoid immediate danger
     def minimax(self, position, isMaximizingPlayer, depth, alpha, beta):
 
-        key = getKeyFromPosition(position)
+        key = position.get_fen()
 
         if self.infoAI.memoizationOn and (value := self.cache.get(key)) is not None:
             return value
@@ -146,14 +146,14 @@ class AIEngine:
     def staticEvaluation(self, position):
         self.infoAI.evaluatedPositions += 1
 
-        if position.is_over():
-            if position.has_player_won(WHITE_PLAYER):
-                return float("inf")
-            elif position.has_player_won(BLACK_PLAYER):
-                return float("-inf")
-            else:
-                # draw
-                return 0.0
+        score = position.get_winner()
+        if score == WHITE_PLAYER:
+            return float("inf")
+        elif score == BLACK_PLAYER:
+            return float("-inf")
+        elif score == 0:
+            # draw
+            return 0.0
         else:
             fenString = position.get_li_fen()
             blackCharacters = getBlackCharactersFromFEN(fenString)
